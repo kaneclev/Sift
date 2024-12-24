@@ -1,0 +1,23 @@
+{
+    "scopeName": "source.sift",
+    "patterns": [
+      {
+        "name": "keyword.control.sift",
+        "match": "\\b(request|filter|extract|targets|tags|attributes|text|containing|exclude|codename|repeat|with|as)\\b"
+      },
+      {
+        "name": "comment.line.double-slash.sift",
+        "match": "//.*$"
+      },
+      {
+        "name": "string.quoted.double.sift",
+        "match": "\".*?\""
+      },
+      {
+        "name": "variable.sift",
+        "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+      }
+    ],
+    "fileTypes": ["sift"]
+  }
+  

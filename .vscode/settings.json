@@ -1,0 +1,35 @@
+{
+    "editor.tokenColorCustomizations": {
+      "textMateRules": [
+        {
+          "scope": "keyword.control.sift",
+          "settings": {
+            "foreground": "#910d4f", // Orange for Sift keywords
+            "fontStyle": "bold"
+          }
+        },
+        {
+          "scope": "comment.line.double-slash.sift",
+          "settings": {
+            "foreground": "#008000", // Green for comments in Sift
+            "fontStyle": "italic"
+          }
+        },
+        {
+          "scope": "string.quoted.double.sift",
+          "settings": {
+            "foreground": "#50c06c", // Blue for strings in Sift
+            "fontStyle": ""
+          }
+        },
+        {
+          "scope": "variable.sift",
+          "settings": {
+            "foreground": "#aa23aa", // Purple for variables in Sift
+            "fontStyle": ""
+          }
+        }
+      ]
+    }
+  }
+  

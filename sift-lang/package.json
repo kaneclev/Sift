@@ -1,0 +1,28 @@
+{
+    "name": "sift-language",
+    "displayName": "Sift Language",
+    "description": "Syntax highlighting for Sift (.sift files)",
+    "version": "0.0.1",
+    "engines": {
+      "vscode": "^1.0.0"
+    },
+    "categories": ["Programming Languages"],
+    "contributes": {
+      "languages": [
+        {
+          "id": "sift",
+          "aliases": ["Sift", "sift"],
+          "extensions": [".sift"],
+          "configuration": "./language-configuration.json"
+        }
+      ],
+      "grammars": [
+        {
+          "language": "sift",
+          "scopeName": "source.sift",
+          "path": "./syntaxes/sift.tmLanguage.json"
+        }
+      ]
+    }
+  }
+  
