@@ -7,11 +7,12 @@ CPUs: {
         tags {"div"},
         attributes {"class": "s-item__info clearfix"},
     } | codename listings;
-
-    filter listings as {
-        tags "h3" with attributes {"class": "s-item__title"} | codename listing_title,
-        tags "a" with attributes {"class": "s-item__link:"} | codename listing_link,
-    } | codename title_elements;
+    
+    select {
+        title: tags "h3" with attributes {"class": "s-item__title"} | extract text;
+        link: tags "a" with attributes {"class": "s-item__link"} | extract attributes "href";
+        extract attributes "href" from link | codename link_text;
+    }
 
 
     // get the next_page url for the repeat statement 

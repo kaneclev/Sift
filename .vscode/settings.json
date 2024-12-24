@@ -4,8 +4,8 @@
         {
           "scope": "keyword.control.sift",
           "settings": {
-            "foreground": "#910d4f", // Orange for Sift keywords
-            "fontStyle": "bold"
+            "foreground": "#4989c5", // Orange for Sift keywords
+            "fontStyle": ""
           }
         },
         {

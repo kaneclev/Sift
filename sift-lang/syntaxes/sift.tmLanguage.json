@@ -3,7 +3,7 @@
     "patterns": [
       {
         "name": "keyword.control.sift",
-        "match": "\\b(request|filter|extract|targets|tags|attributes|text|containing|exclude|codename|repeat|with|as)\\b"
+        "match": "\\b(request|filter|extract|targets|tags|attributes|text|containing|exclude|codename|repeat|with|as|from)\\b"
       },
       {
         "name": "comment.line.double-slash.sift",
