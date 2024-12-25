@@ -11,8 +11,7 @@ CPUs: {
     select {
         title: tags "h3" with attributes {"class": "s-item__title"} | extract text;
         link: tags "a" with attributes {"class": "s-item__link"} | extract attributes "href";
-        extract attributes "href" from link | codename link_text;
-    }
+    } from listings | codename listing_content;
 
 
     // get the next_page url for the repeat statement 

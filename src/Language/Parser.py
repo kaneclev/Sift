@@ -1,6 +1,23 @@
 import os
 import sys
 from typing import Union, Optional, Iterable, List, Dict
+from enum import Enum
+import re
+class Regex(Enum):
+    BRACKETS =  re.compile(r'\[\s*(.*?)\s*\]', re.DOTALL)
+    BRACES = re.compile(r'\{\s*(.*?)\s*\}', re.DOTALL)
+    TARGETS_KEYWORD = re.compile(rf'^\s*(targets)\s*=\s*{BRACKETS}', re.DOTALL)
+    VALID_TARGETS_LIST = re.compile(rf'[[\s*
+                                    ([a-z^0-9^;]+):
+                                    \s*"(*)"
+                                    ],\s*]+')
+    REQUEST = re.compile(r'^\s*request([^;]+);', re.DOTALL)
+    PIPE_TO_CONTENT = re.compile(r'\|\s*([^;]+);')
+    # TODO: as we build out more regexes like REQUEST, add them as an OR statement here to allow them before.
+    PIPE_CODENAME = re.compile(rf'^\s*{REQUEST}\s*{PIPE_TO_CONTENT}([^;]+);')
+    BRACKET_CODENAME = re.compile(r'\}\s*|\s*codename\s*([^;]+);')
+    AS_CODENAME = re.compile(rf'')
+
 class SiftFile:
     def __init__(self, path: str):
         self.lines: str = []
