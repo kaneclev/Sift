@@ -4,7 +4,7 @@
         {
           "scope": "keyword.control.sift",
           "settings": {
-            "foreground": "#4989c5", // Orange for Sift keywords
+            "foreground": "#5aabf7", // Orange for Sift keywords
             "fontStyle": ""
           }
         },
@@ -25,10 +25,31 @@
         {
           "scope": "variable.sift",
           "settings": {
-            "foreground": "#aa23aa", // Purple for variables in Sift
+            "foreground": "#ffffff", // Purple for variables in Sift
             "fontStyle": ""
           }
-        }
+        },
+        {
+          "scope": "variable.assignment.sift",
+          "settings": {
+            "foreground": "#c20e0e", // Purple for variables in Sift
+            "fontStyle": ""
+          }
+        },
+        {
+          "scope": "endline.sift",
+          "settings": {
+            "foreground": "#c20e0e", // Purple for variables in Sift
+            "fontStyle": ""
+          }
+        },
+        {
+          "scope": "colon.sift",
+          "settings": {
+            "foreground": "#c20e0e", // Purple for variables in Sift
+            "fontStyle": ""
+          }
+        },
       ]
     }
   }

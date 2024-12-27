@@ -1,26 +1,4 @@
 targets = [ CPUs: "https://www.ebay.com/b/CPUs-Processors/164?Brand=AMD&Condition=New&LH_ItemCondition=3000%7C1500&rt=nc&mag=1"]
-
-CPUs: {
-    request as html | codename all_html;
-    // get the listings
-    filter all_html as {
-        tags {"div"},
-        attributes {"class": "s-item__info clearfix"},
-    } | codename listings;
-    
-    select {
-        title: tags "h3" with attributes {"class": "s-item__title"} | extract text;
-        link: tags "a" with attributes {"class": "s-item__link"} | extract attributes "href";
-    } from listings | codename listing_content;
-
-
-    // get the next_page url for the repeat statement 
-    filter all_html as {
-        tags "div" with attributes {"class": "b-pagination"}
-    } | codename pagination_element;
-
-    filter pagination_element as {
-        tags "a" with attributes {"type": "next"}
-    } | codename next_page_element;
-    extract attributes "href" from next_page_element | codename next_url_link;
+CPUS: {
+       extract where tag "div" -> div_elements;
 }
