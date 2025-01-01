@@ -1,11 +1,12 @@
 from pathlib import Path
-from CstmParseTree import ParseTree
+from parsers.high_level_structure.HighLevelTree import HighLevelTree
 
 class SiftFile:
     def __init__(self, file_path: Path):
         self.file_path = file_path
-        self.data = None  # This will hold the structured representation
-        self._parse_file()
+        self.data = self._parse_file()  
+        self.high_level_structure = HighLevelTree(self.data)
+        self.high_level_structure.print_tree()
     
     def verify_filepath(self):
         exceptions = []
@@ -23,13 +24,11 @@ class SiftFile:
             raise Exception(f"File verification failed with errors: {exceptions}")
         
         with open(self.file_path, 'r') as file:
-            file_contents = file.read()
+            return file.read()
         
-        ParseTree(file_contents)
-        exit()
         
         # Transform the parse tree into a structured object
 
 
 
-a = SiftFile(Path(r"C:\Users\Kane\projects\Sift\siftscripts\example.sift"))
+a = SiftFile(Path(r"C:\Users\Kane\projects\Sift\siftscripts\targets_only.sift"))
