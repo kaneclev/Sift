@@ -1,16 +1,26 @@
-from parsers.high_level_structure.HighLevelGrammar import LangStructure
 from lark import Transformer
+from copy import deepcopy
 import json
+
+from Language.high_level_structure.HighLevelGrammar import HighLevelStructure
+
 class HighLevelTree:
     def __init__(self, file_contents: str):
-        self.parse_tree = LangStructure(file_contents=file_contents).parse()
+        self.parse_tree = HighLevelStructure(file_contents=file_contents).parse()
         self.tree = HLTransformer().transform(self.parse_tree)
         pass
     def print_tree(self):
         print(json.dumps(self.tree, indent=4))
+        return json.dumps(self.tree, indent=4)
+    def get_tree(self):
+        return deepcopy(self.tree)
 class HLTransformer(Transformer):
     def script(self, tree):
-        target_list, action_list = tree
+        target_list = tree[0]
+        if len(tree) > 1:
+            action_list = tree[1]
+        else:
+            action_list = []
         return {"target_list": target_list, "action_list": action_list}
     def target_list(self, tree):
         token = tree[0]

@@ -1,12 +1,15 @@
 from pathlib import Path
-from parsers.high_level_structure.HighLevelTree import HighLevelTree
-
+from Language.high_level_structure.HighLevelTree import HighLevelTree
+import Language.Exceptions.SiftFileExceptions as SFE
 class SiftFile:
-    def __init__(self, file_path: Path):
+    def __init__(self, file_path: Path, test_mode: bool = False):
         self.file_path = file_path
+        if test_mode:
+            return
+        self.validate_correct_path_type()
+        self.verify_filepath()
         self.data = self._parse_file()  
         self.high_level_structure = HighLevelTree(self.data)
-        self.high_level_structure.print_tree()
     
     def verify_filepath(self):
         exceptions = []
@@ -16,19 +19,24 @@ class SiftFile:
             exceptions.append(ValueError(f"The file path: {self.file_path} is not a file."))
         if self.file_path.suffix != ".sift":
             exceptions.append(ValueError(f"The file path: {self.file_path} is not a sift file (no .sift extension)"))
-        return exceptions
+        if exceptions:
+            self.raise_issues(exceptions=exceptions)
     
     def _parse_file(self):
-        exceptions = self.verify_filepath()
-        if exceptions:
-            raise Exception(f"File verification failed with errors: {exceptions}")
-        
         with open(self.file_path, 'r') as file:
             return file.read()
         
-        
-        # Transform the parse tree into a structured object
-
-
-
-a = SiftFile(Path(r"C:\Users\Kane\projects\Sift\siftscripts\targets_only.sift"))
+    def raise_issues(self, exceptions: list[Exception]):
+        if exceptions:
+            raise SFE.ExceptionList(exception_list=exceptions)
+    
+    def validate_correct_path_type(self):
+        if not isinstance(self.file_path, Path):
+                    if isinstance(self.file_path, str):
+                        self.file_path = Path(self.file_path)
+                    else:
+                        raise SFE.BadArgumentTypeException(self.file_path)
+    
+    def show_tree(self):
+        return self.high_level_structure.print_tree()
+    

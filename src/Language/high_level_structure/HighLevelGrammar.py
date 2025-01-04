@@ -25,7 +25,7 @@ COMMENTS: /\/\/[^\r\n|\r|\n]+/x
 """
 
 
-class LangStructure(Lark):
+class HighLevelStructure(Lark):
     def __init__(self, file_contents: str):
         super().__init__(hl_grammar, start='script', parser='lalr')
         self.contents = file_contents
