@@ -1,0 +1,2 @@
+targets = [Google: "www.google.com"]
+targets = [Amazon: "www.amazon.com"]

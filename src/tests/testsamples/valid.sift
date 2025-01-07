@@ -1,1 +1,1 @@
-targets: [target_1: "5250"]
+targets = [target_1: "5250"]

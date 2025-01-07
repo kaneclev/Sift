@@ -6,7 +6,7 @@ hl_grammar = """
 script: target_list (action_list)? 
 // Target list definitions (T but RAW)
 target_list: _TARGETS~1 TL_REGEX_DEFINITION~1
-_TARGETS: "targets:"
+_TARGETS: /targets\s*=\s*/
 TL_REGEX_DEFINITION: /\[([^\]]+)\]/
 // Action list (large tree; AL)
 action_list: action+

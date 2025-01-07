@@ -90,6 +90,18 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest-check"
+version = "2.4.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/15/d3/178a723f0420cf4e06fb6ddf43fc1ec68c1d0d4ea3db1ecf8f6df21b345f/pytest_check-2.4.1.tar.gz", hash = "sha256:5224efcef059bf7f0cda253f8d0f62704b4819ff48c93f51c675aea6a014f650", size = 28933 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c0/25/465756acbb66db47ad40e0be6b457d8644c7b9f882b2ff7f5e92dde07915/pytest_check-2.4.1-py3-none-any.whl", hash = "sha256:74f38938183880d9921aeb85662437d2b13e1e053e1bed7d186d54613d3068c7", size = 13789 },
+]
+
+[[package]]
 name = "pytest-cov"
 version = "6.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -134,6 +146,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "lark" },
     { name = "pytest" },
+    { name = "pytest-check" },
     { name = "pytest-cov" },
     { name = "ruff" },
 ]
@@ -142,6 +155,7 @@ dependencies = [
 requires-dist = [
     { name = "lark", specifier = ">=1.2.2" },
     { name = "pytest", specifier = ">=8.3.4" },
+    { name = "pytest-check", specifier = ">=2.4.1" },
     { name = "pytest-cov", specifier = ">=6.0.0" },
     { name = "ruff", specifier = ">=0.8.6" },
 ]

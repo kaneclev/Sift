@@ -3,11 +3,47 @@ from copy import deepcopy
 import json
 
 from Language.high_level_structure.HighLevelGrammar import HighLevelStructure
+"""
+# TODO
+Maybe create a dataclass for the HighLevelTree? or not, idc
+
+Keyword arguments:
+argument -- description
+Return: return_description
+"""
 
 class HighLevelTree:
+    """TODO
+    - Make methods for getting the different aspects of the tree, such as:
+        - The targets list
+        - Any statement in the statement list
+        - Any action in the action list
+        - Statements listed under any particular action
+    
+    Keyword arguments:
+    argument -- description
+    Return: return_description
+    """
+    
     def __init__(self, file_contents: str):
         self.parse_tree = HighLevelStructure(file_contents=file_contents).parse()
         self.tree = HLTransformer().transform(self.parse_tree)
+        pass
+    def get_actions(self):
+        # TODO
+        pass
+    def get_all_targets(self):
+        # TODO
+        pass
+    def get_target(self, target_var_or_url):
+        # TODO
+        pass
+    def get_statement_list_by_target(self, target):
+        # TODO
+        pass
+    def _validate_tree_structure(self): 
+        # TODO should validate the structure of the high-level tree
+        #   In the context of testing, this would be expected to raise certain exception types if bad trees are generated.
         pass
     def print_tree(self):
         print(json.dumps(self.tree, indent=4))
