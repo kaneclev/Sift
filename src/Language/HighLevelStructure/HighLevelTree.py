@@ -3,30 +3,11 @@ from lark import Transformer
 from copy import deepcopy
 import json
 
-from Language.high_level_structure.HighLevelGrammar import HighLevelStructure
+from Language.HighLevelStructure.HighLevelGrammar import HighLevelStructure
 import Language.Exceptions.InternalException as ITE
-"""
-# TODO
-Maybe create a dataclass for the HighLevelTree? or not, idc
 
-Keyword arguments:
-argument -- description
-Return: return_description
-"""
 
 class HighLevelTree:
-    """TODO
-    - Make methods for getting the different aspects of the tree, such as:
-        - The targets list
-        - Any statement in the statement list
-        - Any action in the action list
-        - Statements listed under any particular action
-    
-    Keyword arguments:
-    argument -- description
-    Return: return_description
-    """
-    
     def __init__(self, file_contents: str):
         self.parse_tree = HighLevelStructure(file_contents=file_contents).parse()
         self.tree: dict = HLTransformer().transform(self.parse_tree)
@@ -61,7 +42,6 @@ class HighLevelTree:
         # Update the tree with the parsed dictionary
         self.tree["target_list"] = new_targets_as_dict
 
-        # Optional: Debug output
 
     def _discern_statement_lists_in_action_list(self):
     # Fetch the action_list once for better performance
@@ -142,6 +122,7 @@ class HighLevelTree:
         return json.dumps(self.tree, indent=4)
     def get_tree(self):
         return deepcopy(self.tree)
+    
 class HLTransformer(Transformer):
     def script(self, tree):
         target_list = tree[0]

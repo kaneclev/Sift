@@ -1,0 +1,39 @@
+// Define the targets
+targets = [
+    Google: "https://www.google.com",
+    Amazon: "https://www.amazon.com",
+    eBay: "https://www.ebay.com"
+]
+
+// Action block for Google
+Google: {
+    // Extract all div and li tags and store them in `google_div_li`
+    extract where tag ["div", "li"] -> google_div_li;
+
+    // Extract elements with the class "search-result" and store in `google_results`
+    extract where attribute "class": "search-result" -> google_results;
+
+    // Further filter `google_results` to only include elements containing the text "Ad"
+    extract where google_results and text "Ad" -> google_ads;
+}
+
+// Action block for Amazon
+Amazon: {
+    // Extract all elements with the tag "span" that have the class "price"
+    extract where tag "span" and attribute "class": "price" -> amazon_prices;
+
+    // Filter for text containing "USD" in `amazon_prices`
+    extract where amazon_prices and text contains "USD" -> usd_prices;
+
+    // Extract links (anchor tags) with an href attribute
+    extract where tag "a" and attribute "href" -> amazon_links;
+}
+
+// Action block for eBay
+eBay: {
+    // Extract elements with tag "li" that have the class "item" and contain the text "Buy It Now"
+    extract where tag "li" and attribute "class": "item" and text contains "Buy It Now" -> ebay_buy_it_now;
+
+    // Extract only the href attribute from `ebay_buy_it_now`
+    extract where ebay_buy_it_now and attribute "href" -> buy_it_now_links;
+}

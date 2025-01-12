@@ -1,6 +1,8 @@
 from pathlib import Path
-from Language.high_level_structure.HighLevelTree import HighLevelTree
+from Language.HighLevelStructure.HighLevelTree import HighLevelTree
 import Language.Exceptions.SiftFileExceptions as SFE
+
+
 class SiftFile:
     def __init__(self, file_path: Path, test_mode: bool = False):
         self.file_path = file_path
@@ -8,12 +10,18 @@ class SiftFile:
         self.high_level_structure = None
         if test_mode:
             pass
-        self.validate_correct_path_type()
-        self.verify_filepath()
+
+        self._verify()
         self.data = self._parse_file()  
         self.high_level_structure = self._make_tree(self.data)
+
+    def _verify(self):
+        self.validate_correct_path_type()
+        self.verify_filepath()
+
     def _make_tree(self, data):
         return HighLevelTree(data)
+    
     def verify_filepath(self):
         exceptions = []
         if not self.file_path.exists():

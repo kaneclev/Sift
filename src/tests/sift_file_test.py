@@ -1,7 +1,5 @@
 import pytest
-import pytest_check as check
 from pathlib import Path
-from Language.high_level_structure.HighLevelTree import HighLevelTree
 import Language.Exceptions.SiftFileExceptions as SFE
 import Language.Exceptions.SyntaxExceptions as SYE
 from Language.SiftFile import SiftFile
