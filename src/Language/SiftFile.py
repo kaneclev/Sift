@@ -42,4 +42,3 @@ class SiftFile:
     
     def show_tree(self):
         return self.high_level_structure.print_tree()
-    

@@ -1,4 +1,4 @@
-class SyntaxError(Exception):
+class SiftSyntaxError(Exception):
     def __init__(self, violating_content: dict[int, str], *args):
         for line_no, text in violating_content.items():
             assert isinstance(line_no, int), (
@@ -23,11 +23,11 @@ class SyntaxError(Exception):
         return f"{exception_type} occurred:\n{violations}"
 
         
-class MultipleTargetsDefinitions(SyntaxError):
+class MultipleTargetsDefinitions(SiftSyntaxError):
     pass
 
-class IncorrectTargetsDefinition(SyntaxError):
+class IncorrectTargetsDefinition(SiftSyntaxError):
     pass
 
-class InvalidCharactersInVariable(SyntaxError):
+class InvalidCharactersInVariable(SiftSyntaxError):
     pass

@@ -1,7 +1,0 @@
-targets: [ CPUs: "https://www.ebay.com/b/CPUs-Processors/164?Brand=AMD&Condition=New&LH_ItemCondition=3000%7C1500&rt=nc&mag=1", ur_mom: "hi", testing:"aa", a:"as"
-
-
-aaa: "a"]
-CPUS: {
-       extract where tag "li" or (tag "div" and (attribute {"class": "li", "href": ""} or attribute {"href": contains "https:"})) -> aas;
-}

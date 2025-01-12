@@ -1,0 +1,4 @@
+targets = [Google: "www.google.com", Amazon: "www.amazon.com"]
+Google: {
+    extract where tag ["div", "li"] -> div_li_tags;
+}
