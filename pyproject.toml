@@ -26,3 +26,11 @@ addopts = "-v --capture=no --cov=src/Language --cov-report=html --tb=no"
 testpaths = [
     "src/tests"
 ]
+
+[tool.uv.sources]
+sift = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "sift",
+]

@@ -158,4 +158,8 @@ requires-dist = [
     { name = "pytest-check", specifier = ">=2.4.1" },
     { name = "pytest-cov", specifier = ">=6.0.0" },
     { name = "ruff", specifier = ">=0.8.6" },
+    { name = "sift", virtual = "." },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "sift", virtual = "." }]
