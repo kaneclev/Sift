@@ -1,4 +1,3 @@
-from enum import Enum
 from dataclasses import dataclass, field
 
 @dataclass
@@ -19,4 +18,4 @@ class ActionType:
         if action_type.extract_type == "ExtractFrom" and not action_type.assignment:
             # TODO: need to raise the appropriate exception. if the script says 'extract from' but doesnt reference a previously defined variable to extract from then its bad
             pass
-        
+
