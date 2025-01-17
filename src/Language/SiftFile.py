@@ -50,3 +50,6 @@ class SiftFile:
     
     def show_tree(self):
         return self.high_level_structure.print_tree()
+
+    def get_tree(self):
+        return self.high_level_structure

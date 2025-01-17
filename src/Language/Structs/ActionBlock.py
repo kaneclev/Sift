@@ -10,11 +10,12 @@ class ActionBlock:
     def generate_action_block(cls, target_action_map: Dict[str, str]):
         # TODO: need to make error checking; target is defined and is a string, actions is defined and is a string
         #   In order to do the above, need to create exceptions for bad cases.
-        assert len(target_action_map.keys()) == 1, "More keys given than expected for the factory" \
+        assert len(target_action_map.keys()) == 1, "More keys given than expected for the factory " \
                                                    f"method of the ActionBlock dataclass: {target_action_map}"
         target, raw_action = next(iter(target_action_map.items()))
         action_block_as_list = analyze(raw_action)
+        print(f'actions in the list: {action_block_as_list}')
         action_list: List[Action] = []
         for action in action_block_as_list:
-            # TODO 
+            action_list.append(Action.generate_action(action))
             pass

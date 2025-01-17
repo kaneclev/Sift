@@ -14,7 +14,7 @@ Google: {
     extract where attribute "class": "search-result" -> google_results;
 
     // Further filter `google_results` to only include elements containing the text "Ad"
-    extract where google_results and text "Ad" -> google_ads;
+    extract from google_results where text "Ad" -> google_ads;
 }
 
 // Action block for Amazon
@@ -23,7 +23,7 @@ Amazon: {
     extract where tag "span" and attribute "class": "price" -> amazon_prices;
 
     // Filter for text containing "USD" in `amazon_prices`
-    extract where amazon_prices and text contains "USD" -> usd_prices;
+    extract from amazon_prices where text contains "USD" -> usd_prices;
 
     // Extract links (anchor tags) with an href attribute
     extract where tag "a" and attribute "href" -> amazon_links;
@@ -35,5 +35,5 @@ eBay: {
     extract where tag "li" and attribute "class": "item" and text contains "Buy It Now" -> ebay_buy_it_now;
 
     // Extract only the href attribute from `ebay_buy_it_now`
-    extract where ebay_buy_it_now and attribute "href" -> buy_it_now_links;
+    extract from ebay_buy_it_now where attribute "href" -> buy_it_now_links;
 }
