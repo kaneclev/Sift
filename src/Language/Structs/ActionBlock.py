@@ -14,8 +14,7 @@ class ActionBlock:
                                                    f"method of the ActionBlock dataclass: {target_action_map}"
         target, raw_action = next(iter(target_action_map.items()))
         action_block_as_list = analyze(raw_action)
-        print(f'actions in the list: {action_block_as_list}')
         action_list: List[Action] = []
         for action in action_block_as_list:
             action_list.append(Action.generate_action(action))
-            pass
+        return cls(target=target, actions=action_list)        
