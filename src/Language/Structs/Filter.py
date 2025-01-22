@@ -12,13 +12,14 @@ class Filter:
     operands: Optional[List["Filter"]] = None
 
     @classmethod
-    def generate_filter(cls, filter_string: str):
+    def generate_filter(cls, filter_content: str):
         # TODO: Fix this method. Filter ought to be a tree-like structure.
         """
         Generates a Filter tree from a filter string.
 
         Args:
-            filter_string (str): The filter string to parse.
+            filter_string (str): The filter content to parse (at base-case, this will be a string; 
+                recursively, this will be dicts under the 'operands' key which constitute pre-parsed Filter objects)
 
         Returns:
             Filter: The constructed Filter tree.
@@ -26,35 +27,50 @@ class Filter:
         Raises:
             ValueError: If the input data is invalid or cannot be parsed.
         """
-        try:
-            # Parse the string into intermediate data
-            data = analyze(filter_string=filter_string)
-            print(f"Parsed Data: {data}")
+        # Parse the string into intermediate data
+        if isinstance(filter_content, str):
+            data = analyze(filter_string=filter_content)
+        else:
+            data = filter_content
 
-            # Handle atomic filters with a single value
-            if "type" in data and "value" in data:
-                return cls(
-                    filter_type=data["type"],
-                    value=data["value"]
-                )
+        # Handle atomic filters with a single value
+        if "type" in data and "value" in data:
+            return cls(
+                filter_type=data["type"],
+                value=data["value"]
+            )
 
-            # Handle atomic filters with multiple values
-            elif "type" in data and "values" in data:
-                return cls(
-                    filter_type=data["type"],
-                    value=data["values"]  # List or dict of values
-                )
+        # Handle atomic filters with multiple values
+        elif "type" in data and "values" in data:
+            return cls(
+                filter_type=data["type"],
+                value=data["values"]  # List or dict of values
+            )
 
-            # Handle logical operators with operands
-            elif "operator" in data and "operands" in data:
-                return cls(
-                    operator=data["operator"],
-                    operands=[cls.generate_filter(op) for op in data["operands"]]
-                )
+        # Handle logical operators with operands
+        elif "operator" in data and "operands" in data:
+            return cls(
+                operator=data["operator"],
+                operands=[cls.generate_filter(op) for op in data["operands"]]
+            )
 
-            # Handle unexpected data formats
-            else:
-                raise ValueError(f"Invalid filter data structure: {data}")
+        # Handle unexpected data formats
+        else:
+            raise ValueError(f"Invalid filter data structure: {data}")
 
-        except Exception as e:
-            raise ValueError(f"Error generating filter from string: {filter_string}. Details: {str(e)}")
+    def pretty_print(self, indent=0) -> str:
+            indent_str = " " * indent
+            lines = []
+            lines.append(f"{indent_str}Filter:")
+            lines.append(f"{indent_str}  operator: {self.operator}")
+            lines.append(f"{indent_str}  filter_type: {self.filter_type}")
+            lines.append(f"{indent_str}  value: {self.value}")
+            if self.operands:
+                lines.append(f"{indent_str}  operands:")
+                for i, operand in enumerate(self.operands, start=1):
+                    # Recursively call pretty_print on each operand
+                    lines.append(f"{indent_str}    {i}. {operand.pretty_print(indent=indent + 4)}")
+            return "\n".join(lines)
+
+    def __str__(self):
+        return self.pretty_print(indent=0)

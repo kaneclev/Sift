@@ -18,3 +18,18 @@ class ActionBlock:
         for action in action_block_as_list:
             action_list.append(Action.generate_action(action))
         return cls(target=target, actions=action_list)        
+
+    def pretty_print(self, indent=0) -> str:
+        """
+        Return a pretty string for the ActionBlock with a given indentation.
+        """
+        indent_str = " " * indent
+        lines = []
+        lines.append(f"{indent_str}ActionBlock (target='{self.target}'): ")
+        for i, action in enumerate(self.actions, start=1):
+            lines.append(f"{indent_str}  {i}. {action.pretty_print(indent=indent + 4)}")
+        return "\n".join(lines)
+
+    def __str__(self):
+        # If you want to override __str__ in the same style
+        return self.pretty_print(indent=0)

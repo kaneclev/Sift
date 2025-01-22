@@ -18,17 +18,23 @@ filter_grammar = """
 ?not_expression: primary
                 | "not" primary -> not_expr
 
+
 ?primary: filter
         | "(" expression ")" -> group
 
 filter: "tag" tag_values -> tag_filter
       | "attribute" attribute_values -> attribute_filter
+      | "text" text_values -> text_filter
+      | /text[^\r\n|\r|\n]+contains/x text_values -> contains_text_filter
 
-tag_values: ESCAPED_STRING                         // Single tag
+tag_values: ESCAPED_STRING                       // Single tag
           | "[" ESCAPED_STRING ("," ESCAPED_STRING)* "]" -> tag_list // Multiple tags
 
-attribute_values: ESCAPED_STRING ":" ESCAPED_STRING  // Single key-value pair
+attribute_values: ESCAPED_STRING
+                | ESCAPED_STRING ":" ESCAPED_STRING // Single key-value pair
                 | "{" pair ("," pair)* "}" -> attribute_dict // Multiple key-value pairs
+text_values: ESCAPED_STRING 
+          | "[" ESCAPED_STRING ("," ESCAPED_STRING)* "]" -> text_string_list // Multiple tags
 
 pair: ESCAPED_STRING ":" ESCAPED_STRING  // Key-value pair
 
@@ -37,7 +43,7 @@ pair: ESCAPED_STRING ":" ESCAPED_STRING  // Key-value pair
 %ignore WS
 
 """
-class FilterGrammar(Lark):
+class FilterGrammar(Lark): 
     def __init__(self, filter: str):
         super().__init__(filter_grammar, start='start', parser='lalr')
         self.contents = filter
@@ -48,15 +54,42 @@ class FilterTransformer(Transformer):
     def tag_filter(self, args):
         tag_values = args[0]
         if isinstance(tag_values, list):
-            return {"type": FilterTypes.TAG, "values": tag_values}  # List of tags
-        return {"type": FilterTypes.TAG, "value": tag_values}  # Single tag
+            return {"type": FilterTypes.TAG, "values": [val.value for val in tag_values]}  # List of tags
+        return {"type": FilterTypes.TAG, "value": tag_values.children[0].value}  # Single tag
 
     def attribute_filter(self, args):
         attribute_values = args[0]
         if isinstance(attribute_values, dict):
             return {"type": FilterTypes.ATTRIBUTE, "values": attribute_values}  # Dict of attributes
-        return {"type": FilterTypes.ATTRIBUTE, "key": attribute_values[0], "value": attribute_values[1]}  # Single key-value pair
+        if len(attribute_values.children) > 1: # then its a key-pair
+            return {"type": FilterTypes.ATTRIBUTE, "key": attribute_values.children[0].value, "value": attribute_values.children[1].value}  # Single key-value pair
+        if len(attribute_values.children) == 1:
+            return {"type": FilterTypes.ATTRIBUTE, "value": attribute_values.children[0].value} 
+        
+    def text_filter(self, args):
+        text_values = args[0].children
+        text_filter_dict = {"type": FilterTypes.TEXT}
 
+        if isinstance(text_values, list):
+            if len(text_values) > 1:
+                text_filter_dict["values"] = [ val.value for val in text_values ]
+            else:
+                text_filter_dict["value"] = text_values[0].value
+        else:
+            raise TypeError(f'Expected the "text" filter to be represented as a list, but it was not: {text_values}')
+        return text_filter_dict
+    
+    def contains_text_filter(self, args):
+        text_values = args[1].children[0]
+        text_contains_filter_dict = {"type": FilterTypes.TEXT_CONTAINS}
+
+        if isinstance(text_values, list):
+            if len(text_values) > 1:
+                text_contains_filter_dict["values"] = [ val for val in text_values]
+        else:
+            text_contains_filter_dict["value"] = text_values
+        return text_contains_filter_dict
+                
     def tag_list(self, args):
         return args  # List of tags
 
@@ -74,6 +107,7 @@ class FilterTransformer(Transformer):
 
     def not_expr(self, args):
         return {"operator": LogicalOperatorType.NOT, "operands": [args[0]]}
+
 
     def group(self, args):
         return args[0]  # Return grouped expression directly

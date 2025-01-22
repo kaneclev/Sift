@@ -14,3 +14,15 @@ class Action:
         generated_action_type = ActionType.define_action_type(analyzed)
         filt = Filter.generate_filter(analyzed["filter_statement"])
         return cls(action_type=generated_action_type, filter_=filt)
+    
+    def pretty_print(self, indent=0) -> str:
+        indent_str = " " * indent
+        lines = []
+        lines.append(f"{indent_str}Action:")
+        lines.append(f"{indent_str}  action_type: {self.action_type}")
+        lines.append(f"{indent_str}  filter: {self.filter_.pretty_print(indent=indent + 2)}")
+        return "\n".join(lines)
+    
+    def __str__(self):
+        # If you want to override __str__ in the same style
+        return self.pretty_print(indent=0)

@@ -14,7 +14,7 @@ Google: {
     extract where attribute "class": "search-result" -> google_results;
 
     // Further filter `google_results` to only include elements containing the text "Ad"
-    extract from google_results where text "Ad" -> google_ads;
+    extract from google_results where text ["Ad", "HI"] -> google_ads;
 }
 
 // Action block for Amazon
