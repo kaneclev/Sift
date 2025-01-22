@@ -13,7 +13,6 @@ class Filter:
 
     @classmethod
     def generate_filter(cls, filter_content: str):
-        # TODO: Fix this method. Filter ought to be a tree-like structure.
         """
         Generates a Filter tree from a filter string.
 
@@ -74,3 +73,33 @@ class Filter:
 
     def __str__(self):
         return self.pretty_print(indent=0)
+    
+    def _draw_tree(self, prefix: str = "", is_tail: bool = True) -> list[str]:
+        """
+        Internal helper method that returns a list of lines (strings).
+        'prefix' is the string used to align branches,
+        'is_tail' indicates if this node is the last child of its parent.
+        """
+        # Describe the current filter node in one line:
+        node_label = f"Filter(op={self.operator}, type={self.filter_type}, val={self.value})"
+
+        # '└── ' if it's the last child, otherwise '├── '
+        lines = [prefix + ("└── " if is_tail else "├── ") + node_label]
+
+        if self.operands:
+            # For all operands except the last, we pass is_tail=False
+            # For the last operand, pass is_tail=True
+            for i, child in enumerate(self.operands):
+                is_last = (i == len(self.operands) - 1)
+                # Update the prefix:
+                #   If we're the last child, we use "    " (4 spaces)
+                #   Otherwise, we use "│   " which maintains the vertical line
+                child_prefix = prefix + ("    " if is_tail else "│   ")
+                lines.extend(child._draw_tree(child_prefix, is_last))
+        return lines
+
+    def draw_tree(self) -> str:
+        """
+        Public method to return an ASCII-visual representation of this Filter tree.
+        """
+        return "\n".join(self._draw_tree(prefix="", is_tail=True))

@@ -35,6 +35,7 @@ class ScriptTree:
             lines.append(f"    {i}. {block.pretty_print(indent=6)}")
 
         return "\n".join(lines)
+    
     @classmethod
     def generate_script_tree(cls, abstract_tree: HighLevelTree):
         abstract = abstract_tree

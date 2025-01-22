@@ -58,6 +58,7 @@ class FilterTransformer(Transformer):
         return {"type": FilterTypes.TAG, "value": tag_values.children[0].value}  # Single tag
 
     def attribute_filter(self, args):
+        print(args)
         attribute_values = args[0]
         if isinstance(attribute_values, dict):
             return {"type": FilterTypes.ATTRIBUTE, "values": attribute_values}  # Dict of attributes
