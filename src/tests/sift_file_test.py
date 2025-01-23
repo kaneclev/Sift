@@ -2,7 +2,7 @@ import pytest
 from pathlib import Path
 import Language.Exceptions.SiftFileExceptions as SFE
 import Language.Exceptions.SyntaxExceptions as SYE
-from Language.SiftFile import SiftFile
+from FileOperations.SiftFile import SiftFile
 class TestSiftFileConstructor:
     def test_empty_string_path(self):
         with pytest.raises(SFE.ExceptionList) as exc_info:

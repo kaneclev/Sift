@@ -1,0 +1,83 @@
+// Define the targets
+targets = [
+    Google: "https://www.google.com",
+    Amazon: "https://www.amazon.com",
+    eBay: "https://www.ebay.com",
+    YouTube: "https://www.youtube.com",
+    Wikipedia: "https://www.wikipedia.org"
+]
+
+// Action block for Google
+Google: {
+    // Extract all div and p tags and store them in `google_div_p`
+    extract where tag ["div", "p"] -> google_div_p;
+
+    // Extract elements with the class "search-result" containing "News"
+    extract where attribute "class": "search-result" and text "News" -> google_news;
+
+    // Further filter `google_news` to include elements containing keywords
+    extract from google_news where text ["Breaking", "Latest"] -> google_breaking_news;
+
+    // Extract all links (anchor tags) with href attributes starting with "https://"
+    extract where tag "a" and attribute "href": "https://.*" -> google_links;
+}
+
+// Action block for Amazon
+Amazon: {
+    // Extract products with "price" or "discount" attributes
+    extract where attribute ["class": "price", "class": "discount"] -> amazon_products;
+
+    // Extract only the text containing "Sale" or "Offer" in `amazon_products`
+    extract from amazon_products where text contains ["Sale", "Offer"] -> amazon_sales;
+
+    // Extract images (img tags) with source URLs
+    extract where tag "img" and attribute "src": ".*" -> amazon_images;
+
+    // Extract user reviews that are tagged with "review" and rated "4 stars or higher"
+    extract where tag "div" and attribute ["class": "review", "data-rating": ">4"] -> amazon_reviews;
+}
+
+// Action block for eBay
+eBay: {
+    // Extract items with a "Buy It Now" tag or an "Auction" tag
+    extract where tag "li" and (text contains "Buy It Now" or text contains "Auction") -> ebay_items;
+
+    // Extract auction items with a specific price range
+    extract from ebay_items where attribute "price": "10-100" -> ebay_affordable_auctions;
+
+    // Extract seller profiles linked to `ebay_items`
+    extract where tag "a" and attribute "class": "seller-profile" -> ebay_seller_profiles;
+
+    // Extract all image URLs for `ebay_items`
+    extract from ebay_items where attribute "src" -> ebay_item_images;
+}
+
+// Action block for YouTube
+YouTube: {
+    // Extract video titles and their associated links
+    extract where tag "a" and attribute ["class": "video-title", "href": "/watch.*"] -> youtube_videos;
+
+    // Extract channel names linked to `youtube_videos`
+    extract from youtube_videos where tag "a" and attribute "class": "channel-name" -> youtube_channels;
+
+    // Extract all comments containing "helpful" or "liked"
+    extract where tag "p" and text ["helpful", "liked"] -> youtube_comments;
+
+    // Extract video views displayed as numbers
+    extract where tag "span" and attribute "class": "view-count" -> youtube_view_counts;
+}
+
+// Action block for Wikipedia
+Wikipedia: {
+    // Extract all headers (h1, h2, h3)
+    extract where tag ["h1", "h2", "h3"] -> wiki_headers;
+
+    // Extract paragraphs containing the word "science"
+    extract where tag "p" and text contains "science" -> wiki_science_paragraphs;
+
+    // Extract all links leading to external websites
+    extract where tag "a" and attribute "href": "^https://.*" -> wiki_external_links;
+
+    // Extract table rows with specific classes
+    extract where tag "tr" and attribute ["class": "data-row", "type": "highlight"] -> wiki_highlighted_rows;
+}

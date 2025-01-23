@@ -1,7 +1,6 @@
 from lark import Lark, logger, Transformer
 import logging
 logger.setLevel(level=logging.DEBUG)
-# TODO Finish implementing the action grammar.
 action_grammar = """
 start: action  
 

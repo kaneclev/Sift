@@ -1,7 +1,12 @@
 from pathlib import Path
 from Language.HighLevelStructure.HighLevelTree import HighLevelTree
-import Language.Exceptions.SiftFileExceptions as SFE
+import FileOperations.Exceptions.Internal.InternalFileExceptions as FOIE
+""" #TODO Modify Exceptions to use the new internal/external exceptions.
 
+Keyword arguments:
+argument -- description
+Return: return_description
+"""
 
 class SiftFile:
     def __init__(self, file_path: Path, test_mode: bool = False):
@@ -39,14 +44,18 @@ class SiftFile:
         
     def raise_issues(self, exceptions: list[Exception]):
         if exceptions:
-            raise SFE.ExceptionList(exception_list=exceptions)
+            raise FOIE.ExceptionList(exception_list=exceptions)
     
     def validate_correct_path_type(self):
         if not isinstance(self.file_path, Path):
                     if isinstance(self.file_path, str):
                         self.file_path = Path(self.file_path)
                     else:
-                        raise SFE.BadArgumentTypeException(self.file_path)
+                        raise FOIE.BadType(method="validate_correct_path_type", 
+                                           class_="SiftFile", 
+                                           field="self.file_path", 
+                                           expected_type="Path", 
+                                           given_type=str(type(self.file_path)))
     
     def show_tree(self):
         return self.high_level_structure.print_tree()
