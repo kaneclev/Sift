@@ -32,7 +32,7 @@ tag_values: ESCAPED_STRING                       // Single tag
 
 attribute_values: ESCAPED_STRING
                 | ESCAPED_STRING ":" ESCAPED_STRING // Single key-value pair
-                | "{" pair ("," pair)* "}" -> attribute_dict // Multiple key-value pairs
+                | "[" pair ("," pair)* "]" -> attribute_dict // Multiple key-value pairs
 text_values: ESCAPED_STRING 
           | "[" ESCAPED_STRING ("," ESCAPED_STRING)* "]" -> text_string_list // Multiple tags
 
@@ -61,7 +61,15 @@ class FilterTransformer(Transformer):
         print(args)
         attribute_values = args[0]
         if isinstance(attribute_values, dict):
-            return {"type": FilterTypes.ATTRIBUTE, "values": attribute_values}  # Dict of attributes
+            key_val_attr_dict_list = []
+            for attr_key_token, attr_val_token in attribute_values.items():
+                curr_attr_key_val_pair = {}
+                attr_key, attr_val = attr_key_token.value, attr_val_token.value
+                curr_attr_key_val_pair["key"] = attr_key
+                curr_attr_key_val_pair["value"] = attr_val
+                key_val_attr_dict_list.append(curr_attr_key_val_pair)
+            return {"type": FilterTypes.ATTRIBUTE, "values": key_val_attr_dict_list}
+            # Then its a list of key-value pairs of attributes.
         if len(attribute_values.children) > 1: # then its a key-pair
             return {"type": FilterTypes.ATTRIBUTE, "key": attribute_values.children[0].value, "value": attribute_values.children[1].value}  # Single key-value pair
         if len(attribute_values.children) == 1:
