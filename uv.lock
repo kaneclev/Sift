@@ -151,6 +151,11 @@ dependencies = [
     { name = "ruff" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "sift" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "lark", specifier = ">=1.2.2" },
@@ -158,7 +163,6 @@ requires-dist = [
     { name = "pytest-check", specifier = ">=2.4.1" },
     { name = "pytest-cov", specifier = ">=6.0.0" },
     { name = "ruff", specifier = ">=0.8.6" },
-    { name = "sift", virtual = "." },
 ]
 
 [package.metadata.requires-dev]

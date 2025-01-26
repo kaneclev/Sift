@@ -12,7 +12,7 @@ Google: {
 
     // Extract elements with the class "search-result" and store in `google_results`
     extract where attribute "class": "search-result" -> google_results;
-    extract where attribute []"text": "my_attr_1", "text2": "my_attr_2"] -> test_res;
+    extract where attribute ["text": "my_attr_1", "text2": "my_attr_2"] -> test_res;
 
     // Further filter `google_results` to only include elements containing the text "Ad"
     extract from google_results where text ["Ad", "HI"] -> google_ads;

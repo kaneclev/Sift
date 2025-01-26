@@ -9,6 +9,7 @@ def parse_action_blocks_to_dataclasses(action_block_list: List[Dict[str, str]]):
         parsed_block = ActionBlock.generate_action_block(action_block)
         instance_action_block_list.append(parsed_block)
     return instance_action_block_list
+
 @dataclass
 class ScriptTree:
     abstract: HighLevelTree
