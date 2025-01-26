@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import Dict, Optional, List, Union
 from Language.Structs.PreciseGrammars.FilterTypes import FilterTypes
 from Language.Structs.Action import Action
-from Language.Structs.PreciseGrammars.FilterGrammar import analyze
 from Language.Structs.PreciseGrammars.ExpressionTypes import LogicalOperatorType
 from Language.Structs.ActionTypes import ActionType
 from lark import Lark, logger, Transformer
