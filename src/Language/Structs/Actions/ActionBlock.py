@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Dict
-from Language.Structs.Action import Action
+from Language.Structs.Actions.Action import Action
 from Language.Structs.PreciseGrammars.ActionBlockGrammar import analyze
 @dataclass
 class ActionBlock:

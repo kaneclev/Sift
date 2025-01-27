@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Dict
-from Language.Structs.ActionBlock import ActionBlock
+from Language.Structs.Actions.ActionBlock import ActionBlock
 from Language.HighLevelStructure.HighLevelTree import HighLevelTree
 
 def parse_action_blocks_to_dataclasses(action_block_list: List[Dict[str, str]]):
