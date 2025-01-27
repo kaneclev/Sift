@@ -4,8 +4,6 @@ import Language.Structs.Exceptions.Internal.ActionExceptions as ActExcept
 from abc import ABC, abstractmethod
 from typing import Dict, final
 
-
-
 @dataclass
 class Action(ABC):
     """ The base class which all Action classes inherit from.
@@ -51,6 +49,8 @@ class Action(ABC):
 
     @abstractmethod
     def validate(self):
+        """ # TODO A method to validate the structure of a created Action object
+        """
         ...
 
     @abstractmethod
@@ -75,6 +75,12 @@ class Action(ABC):
 
     @abstractmethod
     def pretty_print(self, indent=0) -> str:
+        """ A method to print the structure of the Action class in a human-readable way.
+        
+        Keyword arguments:
+        indent -- The indent to use for structure of the object
+        Return: A 'pretty' string view of the object.
+        """
         ...
 
     @classmethod
