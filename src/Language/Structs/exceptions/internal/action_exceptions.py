@@ -1,7 +1,7 @@
 from language.exceptions.internal_exception import InternalExceptionError
 
 class BaseInternalActionError(InternalExceptionError):
-    def __init__(self, method, reason, *args):
+    def __init__(self, method, reason):
         super().__init__(file="Action.py", cls="Action", method=method, reason=reason)
 
 
@@ -19,3 +19,4 @@ class NoDefinitionFoundError(BaseInternalActionError):
         The given content: {unclaimed_statement} was not identified as belonging to any Action subclass.
         """
         super().__init__(method="generate_action", reason=reason)
+

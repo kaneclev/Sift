@@ -15,7 +15,7 @@ class ActionBlock:
         action_block_as_list = analyze(raw_action)
         action_list: List[Action] = []
         for action in action_block_as_list:
-            action_list.append(Action.generate(action))
+            action_list.append(Action.generate_action(content_to_classify=action))
         return cls(target=target, actions=action_list)
 
     def pretty_print(self, indent=0) -> str:

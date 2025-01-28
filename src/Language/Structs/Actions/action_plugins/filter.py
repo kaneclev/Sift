@@ -96,7 +96,7 @@ class Filter(Action):
 
     def __init__(self, operator=None, filter_type=None, value=None, operands=None):
         super().__init__(
-            action_type=ActionType.FILTER_OP,
+            action_type=ActionType("filter"),
             operator=operator,
             filter_type=filter_type,
             value=value,
@@ -108,7 +108,7 @@ class Filter(Action):
         self.operands = operands
 
     @classmethod
-    def classify(cls, raw_content: str) -> bool:
+    def _classify(cls, raw_content: str) -> bool:
         try:
             cls._parse(raw_content)
             return True
@@ -140,7 +140,7 @@ class Filter(Action):
         parsed_data = cls._parse(raw_content)
         return build_filter(parsed_data)
 
-    def validate(self):
+    def _validate(self):
         if self.operator and not self.operands:
             raise ValueError("Logical operator must have operands")
         if self.filter_type and not self.value:

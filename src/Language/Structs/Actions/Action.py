@@ -1,9 +1,9 @@
 from dataclasses import dataclass
+from language.structs.actions.registrar import ActionRegistrar
 from language.structs.actions.action_types import ActionType
 import language.structs.exceptions.internal.action_exceptions as act_except
 from abc import ABC, abstractmethod
-from typing import Dict, final
-
+from typing import Dict, final, ClassVar
 @dataclass
 class Action(ABC):
     """ The base class which all Action classes inherit from.
@@ -11,21 +11,14 @@ class Action(ABC):
     This class handles the registration and construction of all sub-action classes.
     Use the generate_action method with any string to get an instance of the Action class the string corresponds to.
     """
+    _child_registry: ClassVar[list["Action"]] = ActionRegistrar().imported_modules
 
-    _child_registry: list["Action"] = []
     action_type: ActionType
     metadata: Dict[str, str]
 
-    def __init__(self, action_type: str, **kwargs):
-        self.action_type = action_type
-        # Automatically store all keyword arguments as metadata
-        self.metadata = dict(kwargs.items())
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        Action._child_registry.append(cls)
-
+    @classmethod
     @final
-    def generate_action(self, content_to_classify: str) -> "Action":
+    def generate_action(cls, content_to_classify: str) -> "Action":
         """ Returns an Action instance for the given string statement
         If there are multiple subclasses which claim the statement, a MultipleActionDefinitions exception is raised.
         If there are no subclasses which claim the statement, a NoDefinitionFound exception is raised.
@@ -37,24 +30,25 @@ class Action(ABC):
         Return: return_description
         """
         claimed_owners: list["Action"] = []
-        for action_subclass in self._child_registry:
-            if action_subclass.classify(content_to_classify) is True:
+        print(f"ACTION REGISTRY: {Action._child_registry}")
+        for action_subclass in Action._child_registry:
+            if action_subclass._classify(content_to_classify) is True:
                 claimed_owners.append(action_subclass)
         if len(claimed_owners) > 1:
-            raise act_except.MultipleActionDefinitions(claimed_owners)
+            raise act_except.MultipleActionDefinitionsError(claimed_owners)
         elif len(claimed_owners) == 0:
-            raise act_except.NoDefinitionFound(content_to_classify)
+            raise act_except.NoDefinitionFoundError(content_to_classify)
         else:
             return claimed_owners[0]._generate(content_to_classify)
 
     @abstractmethod
-    def validate(self):
+    def _validate(self):
         """ # TODO A method to validate the structure of a created Action object
         """
         ...
 
     @abstractmethod
-    def classify(self, raw_content) -> bool:
+    def _classify(self, raw_content) -> bool:
         """ Classify; classifies a piece of raw_content as either belonging to this action class or not.
         !-> Part of the Action interface.
 

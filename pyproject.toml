@@ -13,9 +13,13 @@ dependencies = [
 ]
 [tool.ruff]
 line-length = 88
-ignore = ["E501"]
+lint.ignore = ["E501"]
 target-version = "py313"
-select = ["E", "F", "W", "C", "N", "B"]
+lint.select = ["E", "F", "W", "C", "N", "B"]
+
+[tool.ruff.lint.mccabe]
+# Flag errors (`C901`) whenever the complexity level exceeds 5.
+max-complexity = 5
 
 [tool.setuptools]
 package-dir = {"" = "src"}  # Use "src/" layout
