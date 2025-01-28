@@ -3,10 +3,10 @@ import logging
 logger.setLevel(level=logging.DEBUG)
 action_block_grammar = """
 block:  _START (action)+ _END
-_START: /\s*\{\s*/
-_END:  /\s*\}\s*/
-action: /\s*[^;]+;/
-COMMENTS: /\/\/[^\r\n|\r|\n]+/x
+_START: /\\s*\\{\\s*/
+_END:  /\\s*\\}\\s*/
+action: /\\s*[^;]+;/
+COMMENTS: /\\/\\/[^\r\n|\r|\n]+/x
 
 %import common.WS
 %ignore COMMENTS
@@ -28,7 +28,7 @@ class ActionBlockTransformer(Transformer):
         token = content[0]
         action_line = token.value
         return action_line
-    
+
 def analyze(content: str):
     parsed = ActionBlockGrammar(content).parse()
     return ActionBlockTransformer().transform(parsed)

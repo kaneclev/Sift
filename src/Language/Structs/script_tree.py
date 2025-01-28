@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Dict
-from Language.Structs.Actions.ActionBlock import ActionBlock
-from Language.HighLevelStructure.HighLevelTree import HighLevelTree
+from language.structs.actions.action_block import ActionBlock
+from language.high_level_structure.high_level_tree import HighLevelTree
 
 def parse_action_blocks_to_dataclasses(action_block_list: List[Dict[str, str]]):
     instance_action_block_list = []
@@ -24,7 +24,7 @@ class ScriptTree:
         lines = []
         lines.append("ScriptTree:")
         lines.append("  Abstract Tree: {}".format(repr(self.abstract)))
-        
+
         # Print Targets
         lines.append("  Targets:")
         for name, url in self.targets.items():
@@ -36,7 +36,7 @@ class ScriptTree:
             lines.append(f"    {i}. {block.pretty_print(indent=6)}")
 
         return "\n".join(lines)
-    
+
     @classmethod
     def generate_script_tree(cls, abstract_tree: HighLevelTree):
         abstract = abstract_tree
@@ -46,7 +46,7 @@ class ScriptTree:
             action_block_list=action_blocks
         )
         return cls(
-            abstract=abstract, 
-            targets=targets, 
+            abstract=abstract,
+            targets=targets,
             action_blocks=instance_action_block_list
         )

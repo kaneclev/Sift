@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Dict
-from Language.Structs.Actions.Action import Action
-from Language.Structs.PreciseGrammars.ActionBlockGrammar import analyze
+from language.structs.actions.action import Action
+from language.structs.precise_grammars.action_block_grammar import analyze
 @dataclass
 class ActionBlock:
     target: str  # The target alias this block is associated with
@@ -16,7 +16,7 @@ class ActionBlock:
         action_list: List[Action] = []
         for action in action_block_as_list:
             action_list.append(Action.generate(action))
-        return cls(target=target, actions=action_list)        
+        return cls(target=target, actions=action_list)
 
     def pretty_print(self, indent=0) -> str:
         """

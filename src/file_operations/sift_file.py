@@ -1,6 +1,6 @@
 from pathlib import Path
-from Language.HighLevelStructure.HighLevelTree import HighLevelTree
-import FileOperations.Exceptions.Internal.InternalFileExceptions as FOIE
+from language.high_level_structure.high_level_tree import HighLevelTree
+import file_operations.exceptions.internal.internal_exceptions as foie
 """ #TODO Modify Exceptions to use the new internal/external exceptions.
 
 Keyword arguments:
@@ -17,7 +17,7 @@ class SiftFile:
             pass
 
         self._verify()
-        self.data = self._parse_file()  
+        self.data = self._parse_file()
         self.high_level_structure = self._make_tree(self.data)
 
     def _verify(self):
@@ -26,7 +26,7 @@ class SiftFile:
 
     def _make_tree(self, data):
         return HighLevelTree(data)
-    
+
     def verify_filepath(self):
         exceptions = []
         if not self.file_path.exists():
@@ -37,26 +37,26 @@ class SiftFile:
             exceptions.append(ValueError(f"The file path: {self.file_path} is not a sift file (no .sift extension)"))
         if exceptions:
             self.raise_issues(exceptions=exceptions)
-    
+
     def _parse_file(self):
         with open(self.file_path, 'r') as file:
             return file.read()
-        
+
     def raise_issues(self, exceptions: list[Exception]):
         if exceptions:
-            raise FOIE.ExceptionList(exception_list=exceptions)
-    
+            raise foie.ExceptionList(exception_list=exceptions)
+
     def validate_correct_path_type(self):
         if not isinstance(self.file_path, Path):
                     if isinstance(self.file_path, str):
                         self.file_path = Path(self.file_path)
                     else:
-                        raise FOIE.BadType(method="validate_correct_path_type", 
-                                           class_="SiftFile", 
-                                           field="self.file_path", 
-                                           expected_type="Path", 
+                        raise foie.BadType(method="validate_correct_path_type",
+                                           class_="SiftFile",
+                                           field="self.file_path",
+                                           expected_type="Path",
                                            given_type=str(type(self.file_path)))
-    
+
     def show_tree(self):
         return self.high_level_structure.print_tree()
 

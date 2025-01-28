@@ -2,7 +2,7 @@ from lark import Lark, logger, Transformer
 import logging
 logger.setLevel(level=logging.DEBUG)
 action_grammar = """
-start: action  
+start: action
 
 // The main action is a set of filters, then an assignment
 action: filters assignment
@@ -11,7 +11,7 @@ action: filters assignment
 
 filters: filter_keyword filter_statement
 
-?filter_keyword: extract_where 
+?filter_keyword: extract_where
                | extract_from_previously_assigned
 
 // a) "extract where" (two tokens: EXTRACT + WHERE)
@@ -41,7 +41,7 @@ WHERE: "where"
 
 // 5) COMMENTS, WHITESPACE, ETC.
 
-COMMENT: /\/\/[^\n]*/x
+COMMENT: /\\/\\/[^\n]*/x
 %ignore COMMENT
 %import common.WS
 %ignore WS
@@ -78,7 +78,7 @@ class ActionTransformer(Transformer):
         assignment = children[1]
         action_dict['assignment'] = assignment
         return action_dict
-    
+
     def filter_statement(self, children):
         # The parser rule is: filter_statement: FILTER_CONTENT
         # So children should be [Token(FILTER_CONTENT, 'the captured text')]
@@ -102,20 +102,20 @@ class ActionTransformer(Transformer):
             'label': str(label_token)  # e.g. "google_results"
         }
 
- 
+
     #------------------------
     # assignment
     #------------------------
     def assignment(self, children):
-        # children = [Token(ARROW, '->'), Token(LABEL, 'google_ads')] 
+        # children = [Token(ARROW, '->'), Token(LABEL, 'google_ads')]
         # semicolon is matched but usually not part of children
         arrow, label_token = children
         return str(label_token)
 
-    def ARROW(self, token):
+    def ARROW(self, token):  # noqa: N802 -> lark grammar requirement
         return str(token)  # "->"
 
-    def LABEL(self, token):
+    def LABEL(self, token): # noqa: N802 -> lark grammar requirement
         return str(token)  # e.g. "google_ads"
 
 def analyze(string_content_to_analyze: str):

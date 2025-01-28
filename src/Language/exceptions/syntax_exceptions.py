@@ -22,12 +22,12 @@ class SiftSyntaxError(Exception):
         # Return the formatted string
         return f"{exception_type} occurred:\n{violations}"
 
-        
-class MultipleTargetsDefinitions(SiftSyntaxError):
+
+class MultipleTargetsDefinitionsError(SiftSyntaxError):
     pass
 
-class IncorrectTargetsDefinition(SiftSyntaxError):
+class IncorrectTargetsDefinitionError(SiftSyntaxError):
     pass
 
-class InvalidCharactersInVariable(SiftSyntaxError):
+class InvalidCharactersInVariableError(SiftSyntaxError):
     pass

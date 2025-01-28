@@ -3,10 +3,10 @@ from typing import Dict, Optional, List, Union
 from lark import Lark, logger, Transformer, LarkError
 import logging
 
-from Language.Structs.PreciseGrammars.FilterTypes import FilterTypes
-from Language.Structs.Actions.Action import Action
-from Language.Structs.PreciseGrammars.ExpressionTypes import LogicalOperatorType
-from Language.Structs.Actions.ActionTypes import ActionType
+from language.structs.precise_grammars.filter_types import FilterTypes
+from language.structs.actions.action import Action
+from language.structs.precise_grammars.expression_types import LogicalOperatorType
+from language.structs.actions.action_types import ActionType
 
 logger.setLevel(logging.DEBUG)
 
@@ -31,7 +31,7 @@ class Filter(Action):
               | "text" text_values -> text_filter
               | /text[^\r\n|\r|\n]+contains/x text_values -> contains_text_filter
         tag_values: ESCAPED_STRING | "[" ESCAPED_STRING ("," ESCAPED_STRING)* "]" -> tag_list
-        attribute_values: ESCAPED_STRING | ESCAPED_STRING ":" ESCAPED_STRING 
+        attribute_values: ESCAPED_STRING | ESCAPED_STRING ":" ESCAPED_STRING
                         | "[" pair ("," pair)* "]" -> attribute_dict
         text_values: ESCAPED_STRING | "[" ESCAPED_STRING ("," ESCAPED_STRING)* "]" -> text_string_list
         pair: ESCAPED_STRING ":" ESCAPED_STRING
@@ -74,7 +74,7 @@ class Filter(Action):
             return [str(v) for v in args]
 
         def attribute_dict(self, args):
-            return {k: v for k, v in args}
+            return dict(args)
 
         def text_string_list(self, args):
             return [str(v) for v in args]

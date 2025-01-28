@@ -1,5 +1,5 @@
-from FileOperations.SiftFile import SiftFile
-from Language.Structs.ScriptTree import ScriptTree
+from file_operations.sift_file import SiftFile
+from language.structs.script_tree import ScriptTree
 
 testfile = "C:/Users/Kane/projects/Sift/siftscripts/sample1_long.sift"
 rep = SiftFile(testfile)

@@ -13,9 +13,10 @@ dependencies = [
 ]
 [tool.ruff]
 line-length = 88
-select = ["E", "F", "W", "C90"]
-ignore = ["E501", "W503"]
-target-version = "py39"
+ignore = ["E501"]
+target-version = "py313"
+select = ["E", "F", "W", "C", "N", "B"]
+
 [tool.setuptools]
 package-dir = {"" = "src"}  # Use "src/" layout
 packages = ["Language"]
