@@ -1,8 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import dataclass  # noqa: N999
 from typing import Dict, Optional, List, Union
 from lark import Lark, logger, Transformer, LarkError
 import logging
-
+import re
 from language.structs.precise_grammars.filter_types import FilterTypes
 from language.structs.actions.action import Action
 from language.structs.precise_grammars.expression_types import LogicalOperatorType
@@ -18,32 +18,113 @@ class Filter(Action):
     operands: Optional[List["Filter"]] = None
 
     # Lark grammar definition
-    _grammar = Lark(
-        r"""
+    _grammar = Lark("""
         ?start: expression
+
         ?expression: or_expression
-        ?or_expression: and_expression | or_expression "or" and_expression -> or_expr
-        ?and_expression: not_expression | and_expression "and" not_expression -> and_expr
-        ?not_expression: primary | "not" primary -> not_expr
-        ?primary: filter | "(" expression ")" -> group
+
+        ?or_expression: and_expression
+                    | or_expression "or" and_expression -> or_expr
+
+        ?and_expression: not_expression
+                        | and_expression "and" not_expression -> and_expr
+
+        ?not_expression: primary
+                        | "not" primary -> not_expr
+
+
+        ?primary: filter
+                | "(" expression ")" -> group
+
         filter: "tag" tag_values -> tag_filter
-              | "attribute" attribute_values -> attribute_filter
-              | "text" text_values -> text_filter
-              | /text[^\r\n|\r|\n]+contains/x text_values -> contains_text_filter
-        tag_values: ESCAPED_STRING | "[" ESCAPED_STRING ("," ESCAPED_STRING)* "]" -> tag_list
-        attribute_values: ESCAPED_STRING | ESCAPED_STRING ":" ESCAPED_STRING
-                        | "[" pair ("," pair)* "]" -> attribute_dict
-        text_values: ESCAPED_STRING | "[" ESCAPED_STRING ("," ESCAPED_STRING)* "]" -> text_string_list
-        pair: ESCAPED_STRING ":" ESCAPED_STRING
-        %import common.ESCAPED_STRING
+            | "attribute" attribute_values -> attribute_filter
+            | "text" text_values -> text_filter
+            | /text[^\r\n|\r|\n]+contains/x text_values -> contains_text_filter
+
+        tag_values: ESCAPED_STRING                       // Single tag
+                | "[" ESCAPED_STRING ("," ESCAPED_STRING)* "]" -> tag_list // Multiple tags
+
+        attribute_values: ESCAPED_STRING
+                        | ESCAPED_STRING ":" ESCAPED_STRING // Single key-value pair
+                        | "[" pair ("," pair)* "]" -> attribute_dict // Multiple key-value pairs
+        text_values: ESCAPED_STRING
+                | "[" ESCAPED_STRING ("," ESCAPED_STRING)* "]" -> text_string_list // Multiple tags
+
+        pair: ESCAPED_STRING ":" ESCAPED_STRING  // Key-value pair
+
+        %import common.ESCAPED_STRING  // Handles quoted strings like "div"
         %import common.WS
         %ignore WS
+
         """,
         start='start',
         parser='lalr'
     )
 
     class _Transformer(Transformer):
+        # TODO Update Transformer such that we dont have any tree or token objects. below is a sample of what we see currently for lengthy_sample
+        """
+        ScriptTree:
+            Abstract Tree: <language.high_level_structure.high_level_tree.HighLevelTree object at 0x0000045988578290>
+            Targets:
+                - Google: https://www.google.com
+                - Amazon: https://www.amazon.com
+                - eBay: https://www.ebay.com
+                - YouTube: https://www.youtube.com
+                - Wikipedia: https://www.wikipedia.org
+            Action Blocks:
+                1.       ActionBlock (target='Google'):
+                    1.           Filter( FilterTypes.TAG )
+                    2.           Filter(LogicalOperatorType.AND  )
+                    ├──               Filter( FilterTypes.ATTRIBUTE Tree(Token('RULE', 'attribute_values'), [Token('ESCAPED_STRING', '"class"'), Token('ESCAPED_STRING', '"search-result"')]))
+                    └──               Filter( FilterTypes.TEXT Tree(Token('RULE', 'text_values'), [Token('ESCAPED_STRING', '"News"')]))
+                    3.           Filter( FilterTypes.TEXT )
+                    4.           Filter(LogicalOperatorType.AND  )
+                    ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"a"')]))
+                    └──               Filter( FilterTypes.ATTRIBUTE Tree(Token('RULE', 'attribute_values'), [Token('ESCAPED_STRING', '"href"'), Token('ESCAPED_STRING', '"https://.*"')]))
+                2.       ActionBlock (target='Amazon'):
+                    1.           Filter( FilterTypes.ATTRIBUTE )
+                    2.           Filter( FilterTypes.TEXT_CONTAINS text contains)
+                    3.           Filter(LogicalOperatorType.AND  )
+                    ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"img"')]))
+                    └──               Filter( FilterTypes.ATTRIBUTE Tree(Token('RULE', 'attribute_values'), [Token('ESCAPED_STRING', '"src"'), Token('ESCAPED_STRING', '".*"')]))
+                    4.           Filter(LogicalOperatorType.AND  )
+                    ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"div"')]))
+                    └──               Filter( FilterTypes.ATTRIBUTE )
+                3.       ActionBlock (target='eBay'):
+                    1.           Filter(LogicalOperatorType.AND  )
+                    ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"li"')]))
+                    └──               Filter( FilterTypes.TEXT_CONTAINS text contains "Buy It Now" or text contains)
+                    2.           Filter( FilterTypes.ATTRIBUTE Tree(Token('RULE', 'attribute_values'), [Token('ESCAPED_STRING', '"price"'), Token('ESCAPED_STRING', '"10-100"')]))
+                    3.           Filter(LogicalOperatorType.AND  )
+                    ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"a"')]))
+                    └──               Filter( FilterTypes.ATTRIBUTE Tree(Token('RULE', 'attribute_values'), [Token('ESCAPED_STRING', '"class"'), Token('ESCAPED_STRING', '"seller-profile"')]))
+                    4.           Filter( FilterTypes.ATTRIBUTE Tree(Token('RULE', 'attribute_values'), [Token('ESCAPED_STRING', '"src"')]))
+                4.       ActionBlock (target='YouTube'):
+                    1.           Filter(LogicalOperatorType.AND  )
+                    ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"a"')]))
+                    └──               Filter( FilterTypes.ATTRIBUTE )
+                    2.           Filter(LogicalOperatorType.AND  )
+                    ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"a"')]))
+                    └──               Filter( FilterTypes.ATTRIBUTE Tree(Token('RULE', 'attribute_values'), [Token('ESCAPED_STRING', '"class"'), Token('ESCAPED_STRING', '"channel-name"')]))
+                    3.           Filter(LogicalOperatorType.AND  )
+                    ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"p"')]))
+                    └──               Filter( FilterTypes.TEXT )
+                    4.           Filter(LogicalOperatorType.AND  )
+                    ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"span"')]))
+                    └──               Filter( FilterTypes.ATTRIBUTE Tree(Token('RULE', 'attribute_values'), [Token('ESCAPED_STRING', '"class"'), Token('ESCAPED_STRING', '"view-count"')]))
+                5.       ActionBlock (target='Wikipedia'):
+                    1.           Filter( FilterTypes.TAG )
+                    2.           Filter(LogicalOperatorType.AND  )
+                    ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"p"')]))
+                    └──               Filter( FilterTypes.TEXT_CONTAINS text contains)
+                    3.           Filter(LogicalOperatorType.AND  )
+                    ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"a"')]))
+                    └──               Filter( FilterTypes.ATTRIBUTE Tree(Token('RULE', 'attribute_values'), [Token('ESCAPED_STRING', '"href"'), Token('ESCAPED_STRING', '"^https://.*"')]))
+                    4.           Filter(LogicalOperatorType.AND  )
+                    ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"tr"')]))
+                    └──               Filter( FilterTypes.ATTRIBUTE )
+        """
         def tag_filter(self, args):
             tag_values = args[0]
             if isinstance(tag_values, list):
@@ -97,10 +178,6 @@ class Filter(Action):
     def __init__(self, operator=None, filter_type=None, value=None, operands=None):
         super().__init__(
             action_type=ActionType("filter"),
-            operator=operator,
-            filter_type=filter_type,
-            value=value,
-            operands=operands
         )
         self.operator = operator
         self.filter_type = filter_type
@@ -120,8 +197,57 @@ class Filter(Action):
 
     @classmethod
     def _parse(cls, filter_string: str):
-        ast = cls._grammar.parse(filter_string)
-        return cls._Transformer().transform(ast)
+        instance = cls()
+        extract_from_where = re.compile(
+            r'''^\s*                 # optional leading whitespace
+                extract              # the word "extract"
+                \s+                  # at least one space
+                from\s+
+                (\S+)                # capture the source (e.g., google_news)
+                \s+                  # <-- THIS WAS MISSING! Space after the source
+                where                # the word "where"
+                \s+(.*?)             # capture the condition
+                \s*->\s*             # "->" with optional spaces
+                (.+?)                # capture the result
+                \s*$                 # optional trailing whitespace
+            ''',
+            re.VERBOSE | re.DOTALL
+        )
+        extract_from_statement = extract_from_where.search(filter_string)
+        instance.metadata["from_alias"] = ""
+        instance.metadata["raw_filter"] = ""
+        instance.metadata["assignment"] = ""
+
+        if extract_from_statement:
+            alias = extract_from_statement.group(1)
+            filt = extract_from_statement.group(2)
+            assign = extract_from_statement.group(3)
+            instance.metadata["from_alias"] = alias
+            instance.metadata["raw_filter"] = filt
+            instance.metadata["assignment"] = assign
+        extract_where = re.compile(
+            r'''^\s*                 # optional leading whitespace
+                extract              # the word "extract"
+                \s+                  # at least one space
+                where                # the word "where"
+                \s+(.*?)             # capture (lazy) everything up until...
+                \s*->\s*            # "->" with optional surrounding spaces
+                (.+?)                # capture the rest
+                \s*$                 # optional trailing whitespace, then end of string
+            ''',
+            re.VERBOSE | re.DOTALL
+        )
+
+
+        extract_where_statement = extract_where.search(filter_string)
+        if extract_where_statement:
+            filt = extract_where_statement.group(1)
+            assign = extract_where_statement.group(2)
+            instance.metadata["raw_filter"] = filt
+            instance.metadata["assignment"] = assign
+
+        ast = instance._grammar.parse(instance.metadata["raw_filter"])
+        return instance._Transformer().transform(ast)
 
     @classmethod
     def _generate(cls, raw_content: str) -> "Filter":

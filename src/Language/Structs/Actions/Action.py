@@ -1,5 +1,4 @@
-from dataclasses import dataclass
-from language.structs.actions.registrar import ActionRegistrar
+from dataclasses import dataclass, field  # noqa: N999
 from language.structs.actions.action_types import ActionType
 import language.structs.exceptions.internal.action_exceptions as act_except
 from abc import ABC, abstractmethod
@@ -11,10 +10,14 @@ class Action(ABC):
     This class handles the registration and construction of all sub-action classes.
     Use the generate_action method with any string to get an instance of the Action class the string corresponds to.
     """
-    _child_registry: ClassVar[list["Action"]] = ActionRegistrar().imported_modules
+    _child_registry: ClassVar[list["Action"]] = []
 
     action_type: ActionType
-    metadata: Dict[str, str]
+    metadata: Dict[str, str] = field(default_factory=dict)
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        Action._child_registry.append(cls)
 
     @classmethod
     @final
@@ -30,7 +33,6 @@ class Action(ABC):
         Return: return_description
         """
         claimed_owners: list["Action"] = []
-        print(f"ACTION REGISTRY: {Action._child_registry}")
         for action_subclass in Action._child_registry:
             if action_subclass._classify(content_to_classify) is True:
                 claimed_owners.append(action_subclass)
