@@ -1,12 +1,19 @@
-from dataclasses import dataclass  # noqa: N999
-from typing import Dict, Optional, List, Union
-from lark import Lark, logger, Transformer, LarkError
 import logging
 import re
-from language.structs.precise_grammars.filter_types import FilterTypes
-from language.structs.actions.action import Action
-from language.structs.precise_grammars.expression_types import LogicalOperatorType
-from language.structs.actions.action_types import ActionType
+
+from dataclasses import dataclass  # noqa: N999
+from typing import Dict, List, Optional, Union
+
+from lark import Lark, LarkError, Transformer, logger
+
+from language.parsing.structs.actions.action.action import Action
+from language.parsing.structs.actions.action.action_types import ActionType
+from language.parsing.structs.actions.action_plugins.filter.expression_types import (
+    LogicalOperatorType,
+)
+from language.parsing.structs.actions.action_plugins.filter.filter_types import (
+    FilterTypes,
+)
 
 logger.setLevel(logging.DEBUG)
 
@@ -250,7 +257,7 @@ class Filter(Action):
         return instance._Transformer().transform(ast)
 
     @classmethod
-    def _generate(cls, raw_content: str) -> "Filter":
+    def generate(cls, raw_content: str) -> "Filter":
         def build_filter(data):
             if "operator" in data:
                 return Filter(
@@ -266,7 +273,7 @@ class Filter(Action):
         parsed_data = cls._parse(raw_content)
         return build_filter(parsed_data)
 
-    def _validate(self):
+    def validate(self):
         if self.operator and not self.operands:
             raise ValueError("Logical operator must have operands")
         if self.filter_type and not self.value:
@@ -285,7 +292,7 @@ class Filter(Action):
                 lines.append(f"{indent_str}{prefix}{operand.pretty_print(indent + 4)}")
         return "\n".join(lines)
 
-    def __repr__(self):
+    def __str__(self):
         return self.pretty_print()
 
     def _draw_tree(self, prefix="", is_tail=True):

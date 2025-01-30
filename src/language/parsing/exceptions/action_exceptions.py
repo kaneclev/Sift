@@ -1,4 +1,5 @@
-from language.exceptions.internal_exception import InternalExceptionError
+from language.parsing.exceptions.internal_exception import InternalExceptionError
+
 
 class BaseInternalActionError(InternalExceptionError):
     def __init__(self, method, reason):
@@ -11,12 +12,12 @@ class MultipleActionDefinitionsError(BaseInternalActionError):
         Multiple 'Action' subclasses claimed the raw_content as their own:
             {print(str(definition) for definition in definitions)}
         """
-        super().__init__( method="generate_action", reason=reason)
+        super().__init__( method="generate", reason=reason)
 
 class NoDefinitionFoundError(BaseInternalActionError):
     def __init__(self, unclaimed_statement: str):
         reason = f"""
         The given content: {unclaimed_statement} was not identified as belonging to any Action subclass.
         """
-        super().__init__(method="generate_action", reason=reason)
+        super().__init__(method="generate", reason=reason)
 

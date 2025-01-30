@@ -1,6 +1,9 @@
 from pathlib import Path
-from language.high_level_structure.high_level_tree import HighLevelTree
+
 import file_operations.exceptions.internal.internal_exceptions as foie
+
+from language.parsing.parser import Parser
+
 """ #TODO Modify Exceptions to use the new internal/external exceptions.
 
 Keyword arguments:
@@ -12,20 +15,19 @@ class SiftFile:
     def __init__(self, file_path: Path, test_mode: bool = False):
         self.file_path = file_path
         self.data = None
-        self.high_level_structure = None
+        self.parser = None
+        self.tree = None
         if test_mode:
             pass
 
         self._verify()
-        self.data = self._parse_file()
-        self.high_level_structure = self._make_tree(self.data)
+        self.data = self._read_file()
+        self.parser = Parser(self.data)
+        self.tree = self.generate_parse_tree()
 
     def _verify(self):
         self.validate_correct_path_type()
         self.verify_filepath()
-
-    def _make_tree(self, data):
-        return HighLevelTree(data)
 
     def verify_filepath(self):
         exceptions = []
@@ -38,7 +40,7 @@ class SiftFile:
         if exceptions:
             self.raise_issues(exceptions=exceptions)
 
-    def _parse_file(self):
+    def _read_file(self):
         with open(self.file_path, 'r') as file:
             return file.read()
 
@@ -57,8 +59,14 @@ class SiftFile:
                                            expected_type="Path",
                                            given_type=str(type(self.file_path)))
 
-    def show_tree(self):
-        return self.high_level_structure.print_tree()
+    def generate_parse_tree(self):
+        if self.parser:
+            return self.parser.parse_content_to_tree()
+        return None
 
-    def get_tree(self):
-        return self.high_level_structure
+    def show_tree(self):
+        if self.tree:
+            return str(self.tree)
+
+    def get_tree_obj(self):
+        return self.tree

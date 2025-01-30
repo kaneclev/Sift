@@ -1,9 +1,11 @@
-import re
-from copy import deepcopy
 import json
+import re
 
-from language.high_level_structure.high_level_grammar import analyze
-import language.exceptions.internal_exception as ite
+from copy import deepcopy
+
+import language.parsing.exceptions.internal_exception as ite
+
+from language.parsing.high_level_structure.high_level_grammar import analyze
 
 
 class HighLevelTree:

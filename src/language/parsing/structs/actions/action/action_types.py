@@ -1,10 +1,17 @@
-from dataclasses import dataclass
-from file_operations.exceptions.external.file_exceptions import BadPluginNameError, PluginNotFoundError
 import os
+
+from dataclasses import dataclass
+
+from file_operations.exceptions.external.file_exceptions import (
+    BadPluginNameError,
+    PluginNotFoundError,
+)
+
+
 def find_action_plugins():
     plugins = []
-    this_file = os.path.dirname(os.path.abspath(__file__))
-    plugin_dir = os.path.join(this_file, "action_plugins")
+    actions_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    plugin_dir = os.path.join(actions_folder, "action_plugins")
     for plugin_py in os.listdir(plugin_dir):
         if ".py" in plugin_py:
             plugin = plugin_py.split('.py')[0]

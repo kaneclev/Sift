@@ -11,11 +11,17 @@ dependencies = [
     "ruff>=0.8.6",
     "pytest-check>=2.4.1",
 ]
+
 [tool.ruff]
 line-length = 88
 lint.ignore = ["E501"]
 target-version = "py313"
-lint.select = ["E", "F", "W", "C", "N", "B"]
+lint.select = ["E", "F", "W", "C", "N", "B", "I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+combine-as-imports = true
+lines-between-types = 1
 
 [tool.ruff.lint.mccabe]
 # Flag errors (`C901`) whenever the complexity level exceeds 5.

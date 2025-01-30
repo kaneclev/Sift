@@ -1,5 +1,7 @@
-from lark import Lark, Transformer, logger
 import logging
+
+from lark import Lark, Transformer, logger
+
 logger.setLevel(level=logging.DEBUG)
 hl_grammar = """
 // Start of the syntax tree (Script (S))

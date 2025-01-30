@@ -1,14 +1,19 @@
+from abc import abstractmethod
 from dataclasses import dataclass, field  # noqa: N999
-from language.structs.actions.action_types import ActionType
-import language.structs.exceptions.internal.action_exceptions as act_except
-from abc import ABC, abstractmethod
-from typing import Dict, final, ClassVar
+from typing import ClassVar, Dict
+
+import language.parsing.exceptions.action_exceptions as act_except
+
+from language.parsing.structs.actions.action.action_types import ActionType
+from language.parsing.structs.parsed_node_interface import ParsedNode
+
+
 @dataclass
-class Action(ABC):
+class Action(ParsedNode):
     """ The base class which all Action classes inherit from.
 
     This class handles the registration and construction of all sub-action classes.
-    Use the generate_action method with any string to get an instance of the Action class the string corresponds to.
+    Use the generate method with any string to get an instance of the Action class the string corresponds to.
     """
     _child_registry: ClassVar[list["Action"]] = []
 
@@ -20,17 +25,9 @@ class Action(ABC):
         Action._child_registry.append(cls)
 
     @classmethod
-    @final
-    def generate_action(cls, content_to_classify: str) -> "Action":
-        """ Returns an Action instance for the given string statement
-        If there are multiple subclasses which claim the statement, a MultipleActionDefinitions exception is raised.
-        If there are no subclasses which claim the statement, a NoDefinitionFound exception is raised.
-
-        Otherwise, an instance of the Action subclass which claims the statement is returned.
-
-        Keyword arguments:
-        argument -- description
-        Return: return_description
+    def generate(cls, content_to_classify: str) -> "Action":
+        """
+        #TODO make docs
         """
         claimed_owners: list["Action"] = []
         for action_subclass in Action._child_registry:
@@ -41,13 +38,9 @@ class Action(ABC):
         elif len(claimed_owners) == 0:
             raise act_except.NoDefinitionFoundError(content_to_classify)
         else:
-            return claimed_owners[0]._generate(content_to_classify)
-
-    @abstractmethod
-    def _validate(self):
-        """ # TODO A method to validate the structure of a created Action object
-        """
-        ...
+            return claimed_owners[0].generate(content_to_classify)
+    def __str__(self):
+        return self.pretty_print()
 
     @abstractmethod
     def _classify(self, raw_content) -> bool:
@@ -78,15 +71,3 @@ class Action(ABC):
         Return: A 'pretty' string view of the object.
         """
         ...
-
-    @classmethod
-    @abstractmethod
-    def _generate(cls, raw_content: str) -> "Action":
-        """ Factory method for subclasses of the Action base class.
-
-        Keyword arguments:
-        raw_content -- the string to pass to the subclass factory method.
-        Return: An instance of the action subclass.
-        """
-        ...
-
