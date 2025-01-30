@@ -21,13 +21,29 @@ class Action(ParsedNode):
     metadata: Dict[str, str] = field(default_factory=dict)
 
     def __init_subclass__(cls, **kwargs):
+        """
+        Initialize a subclass of Action and register it in the child registry.
+
+        Keyword arguments:
+        kwargs -- Additional keyword arguments.
+        """
         super().__init_subclass__(**kwargs)
         Action._child_registry.append(cls)
 
     @classmethod
     def generate(cls, content_to_classify: str) -> "Action":
         """
-        #TODO make docs
+        Generate an Action instance based on the content to classify.
+
+        This method iterates through all registered subclasses of Action and uses their _classify method to determine
+        which subclass the content belongs to. If more than one subclass claims the content, a MultipleActionDefinitionsError
+        is raised. If no subclass claims the content, a NoDefinitionFoundError is raised.
+
+        Keyword arguments:
+        content_to_classify -- The content to classify and generate an Action instance for.
+
+        Returns:
+        An instance of the appropriate Action subclass.
         """
         claimed_owners: list["Action"] = []
         for action_subclass in Action._child_registry:
@@ -39,35 +55,41 @@ class Action(ParsedNode):
             raise act_except.NoDefinitionFoundError(content_to_classify)
         else:
             return claimed_owners[0].generate(content_to_classify)
+
     def __str__(self):
+        """
+        Return a pretty-printed string representation of the Action instance.
+
+        Returns:
+        A human-readable string representation of the Action instance.
+        """
         return self.pretty_print()
 
     @abstractmethod
     def _classify(self, raw_content) -> bool:
-        """ Classify; classifies a piece of raw_content as either belonging to this action class or not.
-        !-> Part of the Action interface.
+        """
+        Classify a piece of raw_content as either belonging to this action class or not.
 
         All actions must implement a classify method, which accurately determines whether or not a given string from a Sift
         script can be classified as a member of this particular action.
 
-        For example, if the classify() method is called with raw_content 'extract where tag "div"', the 'ExtractWhere' class ought to return True,
-        whereas *all other Action classes must return False*.
-
-        The Action base class will verify that the classify() method only applies to one and only one of its subclasses. If
-        there is more than one True return from the list of subclasses, a MultipleActionDefinition exception will be raised from Exceptions  > Internal > ActionExceptions
         Keyword arguments:
-        raw_content --  the content to classify as either belonging to this instance or not.
-        Return: return_description
+        raw_content -- The content to classify as either belonging to this instance or not.
+
+        Returns:
+        A boolean indicating whether the content belongs to this action class.
         """
         ...
 
-
     @abstractmethod
     def pretty_print(self, indent=0) -> str:
-        """ A method to print the structure of the Action class in a human-readable way.
+        """
+        Print the structure of the Action class in a human-readable way.
 
         Keyword arguments:
-        indent -- The indent to use for structure of the object
-        Return: A 'pretty' string view of the object.
+        indent -- The indentation level for pretty-printing (default is 0).
+
+        Returns:
+        A human-readable string representation of the Action class structure.
         """
         ...
