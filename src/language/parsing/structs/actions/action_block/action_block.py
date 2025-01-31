@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Dict, List
 
 from language.parsing.structs.actions.action.action import Action
-from language.parsing.structs.actions.action_block.action_block_grammar import analyze
+from language.parsing.structs.actions.action_block.action_block_grammar import ActionBlockGrammar
 from language.parsing.structs.parsed_node_interface import ParsedNode
 
 
@@ -18,7 +18,7 @@ class ActionBlock(ParsedNode):
         assert len(target_action_map.keys()) == 1, "More keys given than expected for the factory " \
                                                    f"method of the ActionBlock dataclass: {target_action_map}"
         target, raw_action = next(iter(target_action_map.items()))
-        action_block_as_list = analyze(raw_action)
+        action_block_as_list = ActionBlockGrammar(raw_action).analyze()
         action_list: List[Action] = []
         for action in action_block_as_list:
             action_list.append(Action.generate(content_to_classify=action))
