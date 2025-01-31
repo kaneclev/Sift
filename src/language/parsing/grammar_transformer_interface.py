@@ -11,6 +11,7 @@ class SyntaxProcessor:
         self.handler = GrammarHandler(grammar, start, content)
         pass
     def analyze(self) -> Union[Dict, None]:
-        if self.handler.parse():
+        if self.handler.parse(): # Parses the parent class's grammar, which is then stored as a member var. 
+            # This will make the parent transform its previously parsed content into a dict.
             return self.handler.transform()
         return None

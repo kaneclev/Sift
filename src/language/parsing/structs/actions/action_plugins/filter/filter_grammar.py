@@ -14,30 +14,30 @@ grammar = """
         ?expression: or_expression
 
         ?or_expression: and_expression
-                    | or_expression "or" and_expression -> or_expr
+                    | or_expression "or" and_expression -> operator
 
         ?and_expression: not_expression
-                        | and_expression "and" not_expression -> and_expr
+                        | and_expression "and" not_expression -> operator
 
         ?not_expression: primary
-                        | "not" primary -> not_expr
+                        | "not" primary -> operator
 
 
-        ?primary: filter
+        ?primary: type
                 | "(" expression ")" -> group
 
-        filter: "tag" tag_values -> tag_filter
-            | "attribute" attribute_values -> attribute_filter
-            | "text" text_values -> text_filter
-            | /text[^\r\n|\r|\n]+contains/x text_values -> contains_text_filter
+        type: "tag" tag -> tag
+            | "attribute" attribute -> attribute
+            | "text" text -> text
+            | /text[^\r\n|\r|\n]+contains/x text -> contains_text
 
-        tag_values: ESCAPED_STRING                       // Single tag
+        tag: ESCAPED_STRING                       // Single tag
                 | "[" ESCAPED_STRING ("," ESCAPED_STRING)* "]" -> tag_list // Multiple tags
 
-        attribute_values: ESCAPED_STRING
+        attribute: ESCAPED_STRING
                         | ESCAPED_STRING ":" ESCAPED_STRING // Single key-value pair
                         | "[" pair ("," pair)* "]" -> attribute_dict // Multiple key-value pairs
-        text_values: ESCAPED_STRING
+        text: ESCAPED_STRING
                 | "[" ESCAPED_STRING ("," ESCAPED_STRING)* "]" -> text_string_list // Multiple tags
 
         pair: ESCAPED_STRING ":" ESCAPED_STRING  // Key-value pair
@@ -51,66 +51,6 @@ grammar = """
 class FilterTransformer(Transformer):
     # TODO Update Transformer such that we dont have any tree or token objects. below is a sample of what we see currently for lengthy_sample
     """
-    ScriptTree:
-        Abstract Tree: <language.high_level_structure.high_level_tree.HighLevelTree object at 0x0000045988578290>
-        Targets:
-            - Google: https://www.google.com
-            - Amazon: https://www.amazon.com
-            - eBay: https://www.ebay.com
-            - YouTube: https://www.youtube.com
-            - Wikipedia: https://www.wikipedia.org
-        Action Blocks:
-            1.       ActionBlock (target='Google'):
-                1.           Filter( FilterTypes.TAG )
-                2.           Filter(LogicalOperatorType.AND  )
-                ├──               Filter( FilterTypes.ATTRIBUTE Tree(Token('RULE', 'attribute_values'), [Token('ESCAPED_STRING', '"class"'), Token('ESCAPED_STRING', '"search-result"')]))
-                └──               Filter( FilterTypes.TEXT Tree(Token('RULE', 'text_values'), [Token('ESCAPED_STRING', '"News"')]))
-                3.           Filter( FilterTypes.TEXT )
-                4.           Filter(LogicalOperatorType.AND  )
-                ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"a"')]))
-                └──               Filter( FilterTypes.ATTRIBUTE Tree(Token('RULE', 'attribute_values'), [Token('ESCAPED_STRING', '"href"'), Token('ESCAPED_STRING', '"https://.*"')]))
-            2.       ActionBlock (target='Amazon'):
-                1.           Filter( FilterTypes.ATTRIBUTE )
-                2.           Filter( FilterTypes.TEXT_CONTAINS text contains)
-                3.           Filter(LogicalOperatorType.AND  )
-                ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"img"')]))
-                └──               Filter( FilterTypes.ATTRIBUTE Tree(Token('RULE', 'attribute_values'), [Token('ESCAPED_STRING', '"src"'), Token('ESCAPED_STRING', '".*"')]))
-                4.           Filter(LogicalOperatorType.AND  )
-                ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"div"')]))
-                └──               Filter( FilterTypes.ATTRIBUTE )
-            3.       ActionBlock (target='eBay'):
-                1.           Filter(LogicalOperatorType.AND  )
-                ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"li"')]))
-                └──               Filter( FilterTypes.TEXT_CONTAINS text contains "Buy It Now" or text contains)
-                2.           Filter( FilterTypes.ATTRIBUTE Tree(Token('RULE', 'attribute_values'), [Token('ESCAPED_STRING', '"price"'), Token('ESCAPED_STRING', '"10-100"')]))
-                3.           Filter(LogicalOperatorType.AND  )
-                ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"a"')]))
-                └──               Filter( FilterTypes.ATTRIBUTE Tree(Token('RULE', 'attribute_values'), [Token('ESCAPED_STRING', '"class"'), Token('ESCAPED_STRING', '"seller-profile"')]))
-                4.           Filter( FilterTypes.ATTRIBUTE Tree(Token('RULE', 'attribute_values'), [Token('ESCAPED_STRING', '"src"')]))
-            4.       ActionBlock (target='YouTube'):
-                1.           Filter(LogicalOperatorType.AND  )
-                ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"a"')]))
-                └──               Filter( FilterTypes.ATTRIBUTE )
-                2.           Filter(LogicalOperatorType.AND  )
-                ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"a"')]))
-                └──               Filter( FilterTypes.ATTRIBUTE Tree(Token('RULE', 'attribute_values'), [Token('ESCAPED_STRING', '"class"'), Token('ESCAPED_STRING', '"channel-name"')]))
-                3.           Filter(LogicalOperatorType.AND  )
-                ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"p"')]))
-                └──               Filter( FilterTypes.TEXT )
-                4.           Filter(LogicalOperatorType.AND  )
-                ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"span"')]))
-                └──               Filter( FilterTypes.ATTRIBUTE Tree(Token('RULE', 'attribute_values'), [Token('ESCAPED_STRING', '"class"'), Token('ESCAPED_STRING', '"view-count"')]))
-            5.       ActionBlock (target='Wikipedia'):
-                1.           Filter( FilterTypes.TAG )
-                2.           Filter(LogicalOperatorType.AND  )
-                ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"p"')]))
-                └──               Filter( FilterTypes.TEXT_CONTAINS text contains)
-                3.           Filter(LogicalOperatorType.AND  )
-                ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"a"')]))
-                └──               Filter( FilterTypes.ATTRIBUTE Tree(Token('RULE', 'attribute_values'), [Token('ESCAPED_STRING', '"href"'), Token('ESCAPED_STRING', '"^https://.*"')]))
-                4.           Filter(LogicalOperatorType.AND  )
-                ├──               Filter( FilterTypes.TAG Tree(Token('RULE', 'tag_values'), [Token('ESCAPED_STRING', '"tr"')]))
-                └──               Filter( FilterTypes.ATTRIBUTE )
     """
     def tag_filter(self, args):
         tag_values = args[0]
@@ -161,8 +101,28 @@ class FilterTransformer(Transformer):
 
     def group(self, args):
         return args[0]
-    
-    
+
+
 class FilterGrammar(SyntaxProcessor):
     def __init__(self, content):
         super().__init__(grammar, 'start', content)
+    def analyze(self):
+        dict_filter_representation = super().analyze()
+        new_k_v_pair = {}
+
+        for key, value in dict_filter_representation.items():
+            match key:
+                case "tag":
+                    new_k_v_pair["type"] = FilterTypes.TAG
+                case _:
+                    pass
+            # Values will be in dict format
+            for val_key, val_val in value.items():
+
+                match val_key:
+                    case "tag_list":
+                        new_k_v_pair["values"] = [str(v) for v in val_val]
+                    case _:
+                        pass
+        print(new_k_v_pair)
+        return new_k_v_pair

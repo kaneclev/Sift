@@ -4,18 +4,18 @@ import re
 from dataclasses import dataclass  # noqa: N999
 from typing import Dict, List, Optional, Union
 
-from lark import Lark, LarkError, Transformer, logger
-
 from language.parsing.structs.actions.action.action import Action
 from language.parsing.structs.actions.action.action_types import ActionType
 from language.parsing.structs.actions.action_plugins.filter.expression_types import (
     LogicalOperatorType,
 )
+from language.parsing.structs.actions.action_plugins.filter.filter_grammar import (
+    FilterGrammar,
+)
 from language.parsing.structs.actions.action_plugins.filter.filter_types import (
     FilterTypes,
 )
 
-logger.setLevel(logging.DEBUG)
 
 @dataclass
 class Filter(Action):
@@ -39,10 +39,8 @@ class Filter(Action):
         try:
             cls._parse(raw_content)
             return True
-        except LarkError:
-            return False
         except Exception as e:
-            logger.debug(f"Classification failed: {str(e)}")
+            print(f'Classification Error: {e} (in Filter.py)')
             return False
 
     @classmethod
@@ -95,9 +93,9 @@ class Filter(Action):
             assign = extract_where_statement.group(2)
             instance.metadata["raw_filter"] = filt
             instance.metadata["assignment"] = assign
-
-        ast = instance._grammar.parse(instance.metadata["raw_filter"])
-        return instance._Transformer().transform(ast)
+        handler = FilterGrammar(instance.metadata["raw_filter"])
+        content_as_dict = handler.analyze()
+        return content_as_dict
 
     @classmethod
     def generate(cls, raw_content: str) -> "Filter":

@@ -19,6 +19,7 @@ class GenericTransformer(Transformer):
         """
         # Convert Tokens to string values
         key = str(data)  # Extract the rule name as a string
+
         children = [child.value if isinstance(child, Token) else child for child in children]
 
         # Return as a dictionary with the string name of the rule
