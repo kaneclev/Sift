@@ -21,7 +21,7 @@ Google: {
 // Action block for Amazon
 Amazon: {
     // Extract all elements with the tag "span" that have the class "price"
-    extract where tag "span" and attribute "class": "price" or (attribute "class": "extra_cost" and (tag "div" or attribute "my_attr": "hi there")) -> amazon_prices;
+    extract where tag "span" and attribute "class": "price" or (attribute "class": "extra_cost" and (tag "div" or attribute "my_attr": contains "hi there")) -> amazon_prices;
 
     // Filter for text containing "USD" in `amazon_prices`
     extract from amazon_prices where text contains "USD" -> usd_prices;

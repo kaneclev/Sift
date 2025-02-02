@@ -18,8 +18,13 @@ def parse_action_blocks_to_dataclasses(action_block_list: List[Dict[str, str]]):
 
 @dataclass
 class ScriptTree(ParsedNode):
+    """ Simple representation of the targets defined at the start of the script. """
     targets: Dict[str, str]
+    """ The first child of the script tree, containing all the action blocks. """
     action_blocks: List[ActionBlock]
+
+
+
     ##########################################################
     #                  Class Methods                         #
     ##########################################################
@@ -28,6 +33,7 @@ class ScriptTree(ParsedNode):
         # ! Interface Implementation
         targets = abstract_tree.get_all_targets()
         action_blocks = abstract_tree.get_actions()
+
         instance_action_block_list = parse_action_blocks_to_dataclasses(
             action_block_list=action_blocks
         )
@@ -41,7 +47,6 @@ class ScriptTree(ParsedNode):
     ##########################################################
     def validate(self) -> bool:
          # ! Interface Implementation
-         # TODO Maybe call children's validate methods?
          pass
 
     def __str__(self):

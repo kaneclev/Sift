@@ -10,20 +10,20 @@ class GenericGrammar(Lark):
         self.grammar = grammar
         self.content = content
         pass
-
 class GenericTransformer(Transformer):
     def __default__(self, data, children, meta):
-        """
-        Converts Tree nodes into a nested dictionary structure,
-        replacing Token('RULE', ...) with its string value.
-        """
-        # Convert Tokens to string values
-        key = str(data)  # Extract the rule name as a string
+        # If the key 'data' is a Token, convert it to its string value.
+        if isinstance(data, Token):
+            data = data.value
+        transformed_children = []
+        for child in children:
+            if isinstance(child, Token):
+                transformed_children.append(child.value)
+            else:
+                transformed_children.append(child)
+        # Return a dictionary with the string key.
+        return {data: transformed_children}
 
-        children = [child.value if isinstance(child, Token) else child for child in children]
-
-        # Return as a dictionary with the string name of the rule
-        return {key: children if len(children) > 1 else children[0]}
 
 class GrammarHandler:
     """ A Grammar Handler for parsing and transforming a Lark grammar into a dictionary tree.
@@ -56,4 +56,5 @@ class GrammarHandler:
             return None
 
         transformer = GenericTransformer()
-        return transformer.transform(self.parsed_content)
+        tree_in_dict_form = transformer.transform(self.parsed_content)
+        return tree_in_dict_form

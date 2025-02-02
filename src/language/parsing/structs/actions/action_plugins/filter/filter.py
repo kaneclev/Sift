@@ -7,12 +7,14 @@ from language.parsing.structs.actions.action.action import Action
 from language.parsing.structs.actions.action.action_types import ActionType
 from language.parsing.structs.actions.action_plugins.filter.expression_types import (
     LogicalOperatorType,
+    match_logical_op_type,
 )
 from language.parsing.structs.actions.action_plugins.filter.filter_grammar import (
     FilterGrammar,
 )
 from language.parsing.structs.actions.action_plugins.filter.filter_types import (
     FilterTypes,
+    match_filter_type,
 )
 
 
@@ -39,6 +41,8 @@ class Filter(Action):
 
     @classmethod
     def _classify(cls, raw_content: str) -> bool:
+        #! Interface Implementation from ParsedNode
+        """ Determines if the raw_content string is a Filter or not. """
         try:
             cls._parse(raw_content)
             return True
@@ -48,6 +52,7 @@ class Filter(Action):
 
     @classmethod
     def _parse(cls, raw_content: str):
+        #! Interface Implementation from ParsedNode
         """ Parses the raw_content string and returns a dictionary representation of the filter.
         Uses the FilterGrammar class to parse the raw_content string.
         Keyword arguments:
@@ -62,33 +67,62 @@ class Filter(Action):
 
     @classmethod
     def generate(cls, raw_content: str) -> "Filter":
-        """ Creates an instance of the "Filter" class.
+        parsed_data: dict = cls._parse(raw_content)
+        return cls._build_filter(parsed_data)
 
-        generate() is the Filter classes' implementation of its parent (Action)'s generate() method.
-        It is assumed that before this method is called, the _classify() method has already been called and returned True.
 
-        The generate() method is responsible for creating an instance of the Filter class, and assigning the parsed data to the instance's attributes.
-
-        generate() first calls _parse() on the raw_content, and then uses the parsed data (parsed by FilterGrammar) to build the Filter instance.
-
-        Keyword arguments:
-        raw_content -- The content, which has been classified as a Filter, to be parsed and used to build the Filter instance.
-        Return: An instance of the Filter class.
+    @classmethod
+    def _build_filter(cls, data: dict) -> "Filter":
         """
-        def build_filter(data):
-            if "operator" in data:
-                return Filter(
-                    operator=data["operator"],
-                    operands=[build_filter(op) for op in data["operands"]]
-                )
-            return Filter(
-                filter_type=data["type"],
-                value=data.get("value"),
-                operands=[build_filter(op) for op in data.get("operands", [])]
-            )
+        Recursively builds a Filter instance from a parsed dictionary.
+        This method expects the dictionary to have one key at the top level.
+        That key is either an operator (e.g. 'and_operator', 'or_operator', 'not_operator')
+        or an atomic filter type ('tag', 'attribute', or 'text').
+        """
+        # Handle operator nodes first.
+        print(f'here i am in buold filter {data}')
+        for key, value in data.items():
+            if key in ("and_operator", "or_operator", "not_operator"):
+                # Extract the operator string (e.g. 'and', 'or', 'not')
+                operator = key.split("_")[0]
+                # 'value' here should be a list of dictionaries representing the operands.
+                operands = [cls._build_filter(child) for child in value]
+                return Filter(operator=match_logical_op_type(operator), operands=operands)
 
-        parsed_data: str = cls._parse(raw_content)
-        return build_filter(parsed_data)
+        # Otherwise, assume it's an atomic filter node.
+        # The key here should be one of: 'tag', 'attribute', or 'text'
+        # (if your grammar ever produces additional keys, add them here)
+        for key, value in data.items():
+            if key in ("tag", "attribute", "text"):
+                filter_type = {key: value}  # You might want to map this to your FilterTypes enum.
+                # If 'value' is a list of tokens (as strings with quotes), remove the quotes.
+                if isinstance(value, list):
+                    print(f'Value: {value}')
+                    # Remove leading and trailing quotes from each string.
+                    for val in value: # then its of the type: ['class', 'some_name'] OR ['class', {'contains': 'some_name'}]
+                        if isinstance(val, str):
+                            processed_value = val.strip('"')
+                        elif isinstance(val, dict):
+                            if val.get("contains", None):
+                                processed_value = [v.strip() for v in val["contains"]]
+                            else: # Then it is a LIST of Pairs; like:  [{'pair': ['"class"', '"price"']}, {'pair': ['"class"', '"discount"']}]
+                                # need to iterate over the list and extract the pairs
+                                if val.get("pair", None):
+                                    processed_value = [v.strip() for v in val["pair"]]
+                                else:
+                                    raise ValueError(f"Unrecognized filter structure: {data}")
+                elif isinstance(value, str):
+                    processed_value = value.strip('"')
+                else:
+                    processed_value = value
+                identified_filter_type = match_filter_type(filter_type)
+                if identified_filter_type == FilterTypes.UNKNOWN:
+                    print(f'Whoops! Unknown filter type: {data}')
+                # For an atomic filter, there are no operands.
+                return Filter(filter_type=identified_filter_type, value=processed_value)
+
+        raise ValueError(f"Unrecognized filter structure: {data}")
+
 
     def assign_metadata(self, raw_content: str) -> None:
         """ Splits the given filter string into parts, and assigns them to the metadata dictionary.
@@ -161,6 +195,8 @@ class Filter(Action):
         return
 
     def validate(self):
+        # ! Interface Implementation from ParsedNode
+        # TODO maybe make more robust
         if self.operator and not self.operands:
             raise ValueError("Logical operator must have operands")
         if self.filter_type and not self.value:
