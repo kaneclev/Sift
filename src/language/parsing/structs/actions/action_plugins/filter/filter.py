@@ -19,9 +19,13 @@ from language.parsing.structs.actions.action_plugins.filter.filter_types import 
 
 @dataclass
 class Filter(Action):
+    """ 'operator' refers to 'and', 'or', 'not', 'contains' statements within the filter. """
     operator: Optional[LogicalOperatorType] = None
+    """ 'filter_type' defines the type of filter this instance applies (tag, attribute, text) """
     filter_type: Optional[FilterTypes] = None
+    """ 'value' is the corresponding value associated with the filter type ("div", for example) """
     value: Optional[Union[str, List[str], Dict[str, str]]] = None
+    """ 'operands' represents nested filter statements within the current statement """
     operands: Optional[List["Filter"]] = None
 
 
@@ -29,10 +33,10 @@ class Filter(Action):
         super().__init__(
             action_type=ActionType("filter"),
         )
-        self.operator = operator
-        self.filter_type = filter_type
-        self.value = value
-        self.operands = operands
+        self.operator: Optional[LogicalOperatorType] = operator
+        self.filter_type: Optional[FilterTypes] = filter_type
+        self.value: Optional[Union[str, List[str], Dict[str, str]]] = value
+        self.operands: Optional[List["Filter"]] = operands
 
     @classmethod
     def _classify(cls, raw_content: str) -> bool:
@@ -44,8 +48,70 @@ class Filter(Action):
             return False
 
     @classmethod
-    def _parse(cls, filter_string: str):
-        instance = cls()
+    def _parse(cls, raw_content: str):
+        """ Parses the raw_content string and returns a dictionary representation of the filter.
+        Uses the FilterGrammar class to parse the raw_content string.
+        Keyword arguments:
+        raw_content -- The raw content to be parsed.
+        Return: A dictionary representation of the filter.
+        """
+        instance: "Filter" = cls()
+        instance.assign_metadata(raw_content)
+        handler: FilterGrammar = FilterGrammar(instance.metadata["raw_filter"])
+        content_as_dict: dict = handler.analyze()
+        return content_as_dict
+
+    @classmethod
+    def generate(cls, raw_content: str) -> "Filter":
+        """ Creates an instance of the "Filter" class.
+
+        generate() is the Filter classes' implementation of its parent (Action)'s generate() method.
+        It is assumed that before this method is called, the _classify() method has already been called and returned True.
+
+        The generate() method is responsible for creating an instance of the Filter class, and assigning the parsed data to the instance's attributes.
+
+        generate() first calls _parse() on the raw_content, and then uses the parsed data (parsed by FilterGrammar) to build the Filter instance.
+
+        Keyword arguments:
+        raw_content -- The content, which has been classified as a Filter, to be parsed and used to build the Filter instance.
+        Return: An instance of the Filter class.
+        """
+        def build_filter(data):
+            if "operator" in data:
+                return Filter(
+                    operator=data["operator"],
+                    operands=[build_filter(op) for op in data["operands"]]
+                )
+            return Filter(
+                filter_type=data["type"],
+                value=data.get("value"),
+                operands=[build_filter(op) for op in data.get("operands", [])]
+            )
+
+        parsed_data: str = cls._parse(raw_content)
+        return build_filter(parsed_data)
+
+    def assign_metadata(self, raw_content: str) -> None:
+        """ Splits the given filter string into parts, and assigns them to the metadata dictionary.
+
+        A helper method for the _parse() method which compiles two regex statements, one for extract-from-where statements and one for extract-where statements.
+        Three key-value pairs are inserted into the metadata dictionary: "from_alias", "raw_filter", and "assignment".
+            - from_alias is optionally None; this only exists if the filter string is an extract-from-where statement.
+                - It should be noted that even if from_alias is None, the key-value pair is still inserted into the dictionary.
+            - raw_filter is the component of the filter_string which contains the actual filtering content.
+                Terms like "tag", "attribute", "text", and their corresponding values up until the assignment (->) are stored here.
+            - assignment is the component of the filter_string which contains the assignment content.
+                That is, it contains the alias which the filter stores the filtered data to.
+
+        This method has no return; it only modifies the instance's metadata dictionary.
+
+        The type of the filter_string is mutually exclusive.
+        This means that it will either be an extract-from-where statement or an extract-where statement, but not both.
+
+        Keyword arguments:
+        raw_content -- The string to be split and assigned to the metadata dictionary.
+        Return: None.
+        """
         extract_from_where = re.compile(
             r'''^\s*                 # optional leading whitespace
                 extract              # the word "extract"
@@ -61,18 +127,6 @@ class Filter(Action):
             ''',
             re.VERBOSE | re.DOTALL
         )
-        extract_from_statement = extract_from_where.search(filter_string)
-        instance.metadata["from_alias"] = ""
-        instance.metadata["raw_filter"] = ""
-        instance.metadata["assignment"] = ""
-
-        if extract_from_statement:
-            alias = extract_from_statement.group(1)
-            filt = extract_from_statement.group(2)
-            assign = extract_from_statement.group(3)
-            instance.metadata["from_alias"] = alias
-            instance.metadata["raw_filter"] = filt
-            instance.metadata["assignment"] = assign
         extract_where = re.compile(
             r'''^\s*                 # optional leading whitespace
                 extract              # the word "extract"
@@ -85,34 +139,27 @@ class Filter(Action):
             ''',
             re.VERBOSE | re.DOTALL
         )
+        extract_from_statement: Union[re.Match, None] = extract_from_where.search(raw_content)
+        extract_where_statement: Union[re.Match, None] = extract_where.search(raw_content)
 
+        self.metadata["from_alias"] = ""
+        self.metadata["raw_filter"] = ""
+        self.metadata["assignment"] = ""
 
-        extract_where_statement = extract_where.search(filter_string)
+        if extract_from_statement:
+            alias: str = extract_from_statement.group(1)
+            filt: str = extract_from_statement.group(2)
+            assign: str = extract_from_statement.group(3)
+            self.metadata["from_alias"] = alias
+            self.metadata["raw_filter"] = filt
+            self.metadata["assignment"] = assign
         if extract_where_statement:
-            filt = extract_where_statement.group(1)
-            assign = extract_where_statement.group(2)
-            instance.metadata["raw_filter"] = filt
-            instance.metadata["assignment"] = assign
-        handler = FilterGrammar(instance.metadata["raw_filter"])
-        content_as_dict = handler.analyze()
-        return content_as_dict
+            filt: str = extract_where_statement.group(1)
+            assign: str = extract_where_statement.group(2)
+            self.metadata["raw_filter"] = filt
+            self.metadata["assignment"] = assign
 
-    @classmethod
-    def generate(cls, raw_content: str) -> "Filter":
-        def build_filter(data):
-            if "operator" in data:
-                return Filter(
-                    operator=data["operator"],
-                    operands=[build_filter(op) for op in data["operands"]]
-                )
-            return Filter(
-                filter_type=data["type"],
-                value=data.get("value"),
-                operands=[build_filter(op) for op in data.get("operands", [])]
-            )
-
-        parsed_data = cls._parse(raw_content)
-        return build_filter(parsed_data)
+        return
 
     def validate(self):
         if self.operator and not self.operands:
