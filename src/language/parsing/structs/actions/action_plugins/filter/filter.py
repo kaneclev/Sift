@@ -1,4 +1,3 @@
-import logging
 import re
 
 from dataclasses import dataclass  # noqa: N999
