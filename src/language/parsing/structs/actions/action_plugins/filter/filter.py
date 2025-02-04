@@ -6,13 +6,13 @@ larger parsing framework that deals with statements of the form:
     extract from {some_source} where {some_condition} -> {some_alias}
     extract where {some_condition} -> {some_alias}
 
-The `Filter` itself is organized around logical operators (`and`, `or`, `not`) 
-and atomic filtering structures (tag, attribute, text), along with nested 
+The `Filter` itself is organized around logical operators (`and`, `or`, `not`)
+and atomic filtering structures (tag, attribute, text), along with nested
 operands. The methods in this file handle:
 
 1. Parsing the raw filter expressions into a structured `Filter` object
    hierarchy (via `_parse`, `_build_filter`, etc.).
-2. Providing utilities to traverse or serialize the `Filter` tree 
+2. Providing utilities to traverse or serialize the `Filter` tree
    (`traverse`, `pretty_print`, `draw_tree`, etc.).
 3. Storing metadata that may arise from the DSL's grammar (via `assign_metadata`).
 4. Validating that constructed filter trees conform to expected rules.
@@ -35,6 +35,7 @@ Example usage:
 """
 
 import re
+
 from dataclasses import dataclass  # noqa: N999
 from typing import Dict, Iterator, List, Optional, Union
 
@@ -68,10 +69,10 @@ class Filter(Action):
         filter_type (Optional[FilterTypes]):
             The type of filter if this is an atomic node (e.g. `tag`, `attribute`, `text`).
         value (Optional[Union[str, List[str], Dict[str, str]]]):
-            The value corresponding to the `filter_type`. Could be a string, a list, 
+            The value corresponding to the `filter_type`. Could be a string, a list,
             or a dictionary, depending on the filter usage.
         operands (Optional[List["Filter"]]):
-            Child filters (operands) if this filter is an operator node. For example, 
+            Child filters (operands) if this filter is an operator node. For example,
             an `and` operator might have multiple operands.
     """
 
@@ -124,7 +125,7 @@ class Filter(Action):
         """
         Determines if the given `raw_content` string represents a Filter.
 
-        Internally, this attempts to parse `raw_content` via `_parse`; 
+        Internally, this attempts to parse `raw_content` via `_parse`;
         if parsing succeeds, it is recognized as a Filter.
 
         Args:
@@ -170,7 +171,7 @@ class Filter(Action):
         """
         Constructs a Filter object from a raw DSL statement.
 
-        This method first calls `_parse` to get a dictionary, then 
+        This method first calls `_parse` to get a dictionary, then
         `_build_filter` to recursively build a Filter tree.
 
         Args:
@@ -253,7 +254,7 @@ class Filter(Action):
     @classmethod
     def _build_operator(cls, data: dict) -> "Filter":
         """
-        Processes an operator node, extracting the operator from the key 
+        Processes an operator node, extracting the operator from the key
         (e.g., 'and_operator' -> 'and') and building each operand as a child Filter.
 
         Args:
@@ -276,7 +277,7 @@ class Filter(Action):
     @classmethod
     def _is_atomic_node(cls, data: dict) -> bool:
         """
-        Checks if a given dictionary represents an atomic filter node 
+        Checks if a given dictionary represents an atomic filter node
         (tag, attribute, or text).
 
         Args:
@@ -296,7 +297,7 @@ class Filter(Action):
 
         Args:
             data (dict):
-                Dictionary with a single key of 'tag', 'attribute', or 'text' 
+                Dictionary with a single key of 'tag', 'attribute', or 'text'
                 and a corresponding value.
 
         Returns:
@@ -438,7 +439,7 @@ class Filter(Action):
             - Recursively validates child operands if present.
 
         Raises:
-            ValueError: If an operator node has no operands, or 
+            ValueError: If an operator node has no operands, or
                         if an atomic node has no value.
 
         Returns:
@@ -455,7 +456,7 @@ class Filter(Action):
 
     def pretty_print(self, indent=0) -> str:
         """
-        Generates a human-readable string representation of the filter tree 
+        Generates a human-readable string representation of the filter tree
         in a hierarchical format.
 
         Args:
@@ -482,7 +483,7 @@ class Filter(Action):
 
     def _draw_tree(self, prefix="", is_tail=True):
         """
-        Internal helper method to recursively build a list of lines 
+        Internal helper method to recursively build a list of lines
         for a tree-like ASCII drawing of the Filter structure.
 
         Args:
