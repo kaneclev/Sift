@@ -33,11 +33,11 @@ attribute_filter: "attribute" WS? (ESCAPED_STRING (WS? ":" WS? attribute_value_e
 // It either allows for the "contains" operator followed by a string (or list of strings),
 // or just a plain ESCAPED_STRING.
 ?attribute_value_expr: "contains" WS? (ESCAPED_STRING
-                      | "[" WS? ESCAPED_STRING (WS? "," WS? ESCAPED_STRING)* WS? "]") -> contains_attr
+                      | "[" WS? ESCAPED_STRING (WS? "," WS? ESCAPED_STRING)* WS? "]") -> contains_attribute
                       | ESCAPED_STRING
 
 
-pair: ESCAPED_STRING WS? ":" WS? ESCAPED_STRING
+pair: ESCAPED_STRING WS? ":" WS? attribute_value_expr
 
 // Text filter: supports a plain text value, a list of values, or the 'contains' keyword
 ?contains_text: "contains" WS? (ESCAPED_STRING

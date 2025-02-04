@@ -1,0 +1,135 @@
+// Define the targets
+targets = [
+    Google: "https://www.google.com",
+    Amazon: "https://www.amazon.com",
+    eBay: "https://www.ebay.com",
+    YouTube: "https://www.youtube.com",
+    Wikipedia: "https://www.wikipedia.org",
+    Reddit: "https://www.reddit.com",
+    Twitter: "https://www.twitter.com"
+]
+
+// Action block for Google
+Google: {
+    // Extract all div, p, and span tags to get broad page content
+    extract where tag ["div", "p", "span"] -> google_content;
+
+    // Extract the main content: items with id "main-content" excluding advertisements
+    extract where attribute "id": "main-content" and not attribute "class": "advertisement" -> google_main;
+    
+    // From the main content, filter for weather or news, but skip sponsored items
+    extract from google_main where (text contains "weather" or text contains "news") and not text contains "sponsored" -> google_filtered;
+    
+    // Extract links that point to either Google News or Scholar (using a grouped expression)
+    extract where tag "a" and (attribute "href": "https://news.google.com" or attribute "href": "https://scholar.google.com") -> google_links;
+}
+
+// Action block for Amazon
+Amazon: {
+    // Extract products that either have a price or a discount attribute,
+    // and further check if a special offer is indicated via a contains modifier.
+    extract where attribute ["class": "price", "data-discount": contains "special"] -> amazon_offers;
+    
+    // From these offers, pick out those marked as limited time
+    extract from amazon_offers where text contains "limited" -> amazon_limited_offers;
+    
+    // Extract images: only jpg files
+    extract where tag "img" and attribute "src": ".*\\.jpg" -> amazon_images;
+    
+    // Extract top reviews: divs with either a 5 or 4 star rating
+    extract where tag "div" and (attribute "data-rating": "5" or attribute "data-rating": "4") -> amazon_top_reviews;
+    
+    // From top reviews, filter only those marked as verified purchases
+    extract from amazon_top_reviews where text contains "verified purchase" -> amazon_verified;
+}
+
+// Action block for eBay
+eBay: {
+    // Extract items that have a "Buy It Now" tag or an "Auction" tag
+    extract where tag "li" and (text contains "Buy It Now" or text contains "Auction") -> ebay_items;
+    
+    // From those items, select ones with prices between 10 and 100
+    extract from ebay_items where attribute "price": "10-100" -> ebay_affordable;
+    
+    // Extract seller profile links from items
+    extract where tag "a" and attribute "class": "seller-profile" -> ebay_seller_profiles;
+    
+    // Extract image URLs from items (even if no value is provided after attribute "src")
+    extract from ebay_items where attribute "src" -> ebay_images;
+    
+    // Additionally, extract items that are not marked as sold, by checking status attributes,
+    // and also require that a span tag is present (using a grouped operator).
+    extract where not (attribute "status": "sold") and tag "span" -> ebay_available;
+}
+
+// Action block for YouTube
+YouTube: {
+    // Extract video elements: anchor tags with both video-title and a matching href pattern.
+    extract where tag "a" and attribute ["class": "video-title", "href": "/watch.*"] -> youtube_videos;
+    
+    // From videos, extract channel names from nested anchor tags.
+    extract from youtube_videos where tag "a" and attribute "class": "channel-name" -> youtube_channels;
+    
+    // Extract comments: paragraphs that mention either "helpful" or "liked"
+    extract where tag "p" and text ["helpful", "liked"] -> youtube_comments;
+    
+    // Extract view counts from span elements with a view-count class.
+    extract where tag "span" and attribute "class": "view-count" -> youtube_views;
+    
+    // Additionally, from the video list, filter for official videos (using parentheses).
+    extract from youtube_videos where (text contains "official" or text contains "music video") -> youtube_official;
+}
+
+// Action block for Wikipedia
+Wikipedia: {
+    // Extract all header tags (h1, h2, h3)
+    extract where tag ["h1", "h2", "h3"] -> wiki_headers;
+    
+    // Extract paragraphs about science (using a contains modifier on text)
+    extract where tag "p" and text contains "science" -> wiki_science_paragraphs;
+    
+    // Extract external links starting with "https://"
+    extract where tag "a" and attribute "href": "^https://.*" -> wiki_external_links;
+    
+    // Extract table rows with specific classes and types for highlighted data
+    extract where tag "tr" and attribute ["class": "data-row", "type": "highlight"] -> wiki_highlighted_rows;
+    
+    // From external links, further filter out any that mention "Wikipedia"
+    extract from wiki_external_links where not text contains "Wikipedia" -> wiki_nonwiki_links;
+}
+
+// Action block for Reddit
+Reddit: {
+    // Extract posts from divs with a "post" class
+    extract where tag "div" and attribute "class": "post" -> reddit_posts;
+    
+    // Extract score information from spans with a "score" class
+    extract where tag "span" and attribute "class": "score" -> reddit_scores;
+    
+    // From posts, select those that mention "AMA" or "Discussion" using a grouped expression
+    extract from reddit_posts where (text contains "AMA" or text contains "Discussion") -> reddit_special_posts;
+    
+    // Extract subreddit links from anchor tags with hrefs matching a pattern
+    extract where tag "a" and attribute "href": "https://www.reddit.com/r/.*" -> reddit_subreddits;
+    
+    // From the subreddit links, filter for those labeled as official
+    extract from reddit_subreddits where text contains "official" -> reddit_official_subreddits;
+}
+
+// Action block for Twitter
+Twitter: {
+    // Extract tweets from divs with a "tweet" class
+    extract where tag "div" and attribute "class": "tweet" -> twitter_tweets;
+    
+    // Extract usernames from spans with a "username" class
+    extract where tag "span" and attribute "class": "username" -> twitter_usernames;
+    
+    // From tweets, filter those that mention "breaking" or "update"
+    extract from twitter_tweets where (text contains "breaking" or text contains "update") -> twitter_breaking;
+    
+    // Extract profile links from anchor tags with hrefs matching Twitter patterns
+    extract where tag "a" and attribute "href": "https://twitter.com/.*" -> twitter_links;
+    
+    // Additionally, filter tweets to exclude advertisements
+    extract from twitter_tweets where not text contains "ad" -> twitter_clean;
+}

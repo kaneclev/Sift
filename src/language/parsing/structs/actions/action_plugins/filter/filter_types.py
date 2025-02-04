@@ -9,29 +9,31 @@ class FilterTypes(Enum):
     TAG = "tag"
     UNKNOWN = ""
 
-def match_filter_type(stmt: dict) -> FilterTypes:
+def match_filter_type(stmt: dict) -> FilterTypes:  # noqa: C901
     assert len(stmt.keys()) == 1, f"Too many keys in the filter statement: {stmt}"
-    stmt_key = list(stmt.keys())
-    if stmt_key == "attribute":
-        # Then it will be a list, where the first part is the attrib name, the second entry is the attrib value
-        if isinstance(stmt[stmt_key], list):
-            if len(stmt[stmt_key]) == 2:
-                if isinstance(stmt[stmt_key][0], str) and isinstance(stmt[stmt_key][1], str):
-
+    stmt_key = list(stmt.keys())[0]
+    match stmt_key:
+        case "attribute":
+            for value in stmt[stmt_key]:
+                if isinstance(value, str):
                     return FilterTypes.ATTRIBUTE
-                elif isinstance(stmt[stmt_key][0], str) and isinstance(stmt[stmt_key][1], dict):
-                    return FilterTypes.ATTRIBUTE_CONTAINS
-                else:
-                    return FilterTypes.UNKNOWN
-            else:
-                return FilterTypes.UNKNOWN
-        else:
+                if isinstance(value, dict):
+                    attribute_value_keys = list(value.keys())
+                    if any("contains" in key for key in attribute_value_keys):
+                        return FilterTypes.ATTRIBUTE_CONTAINS
+                    if any("pair" in key for key in attribute_value_keys):
+                        return FilterTypes.ATTRIBUTE
             return FilterTypes.UNKNOWN
-    if stmt_key == "text":
-        if isinstance(stmt[stmt_key], list):
-            return FilterTypes.TEXT
-        elif isinstance(stmt[stmt_key], dict):
-            if list(stmt[stmt_key].keys())[0] == "contains_text":
-                return FilterTypes.TEXT_CONTAINS
-        else:
+        case "text":
+            for value in stmt[stmt_key]:
+                if isinstance(value, str):
+                    return FilterTypes.TEXT
+                if isinstance(value, dict):
+                    text_value_keys = list(value.keys())
+                    if any("contains" in key for key in text_value_keys):
+                        return FilterTypes.TEXT_CONTAINS
             return FilterTypes.UNKNOWN
+        case "tag":
+            return FilterTypes.TAG
+        case _:
+            print(f'Is this a tag filter? No case for it yet in filter_types.py: {stmt}')
