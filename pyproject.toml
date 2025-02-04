@@ -10,13 +10,17 @@ dependencies = [
     "pytest>=8.3.4",
     "ruff>=0.8.6",
     "pytest-check>=2.4.1",
+    "hypothesis>=6.125.1",
 ]
+
+[tool.uv]
+package = true
 
 [tool.ruff]
 line-length = 88
 lint.ignore = ["E501"]
-target-version = "py313"
 lint.select = ["E", "F", "W", "C", "N", "B", "I"]
+target-version = "py313"
 
 [tool.ruff.lint.isort]
 known-first-party = ["src"]
@@ -33,7 +37,8 @@ packages = ["Language"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-v --capture=no --cov=src/Language --cov-report=html --tb=no"
+# --cov=src/Language --cov-report=html add when ready
+addopts = "-ra -v --capture=no  --tb=short"
 testpaths = [
     "src/tests"
 ]
