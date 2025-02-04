@@ -21,3 +21,9 @@ class TransformerParseError(InternalExceptionError):
         file = "HighLevelTree.py"
         cls = "HLTransformers"
         super().__init__(file, cls, method, reason, *args)
+
+class GenericGrammarError(InternalExceptionError):
+    def __init__(self, method, reason, *args):
+        file = "GenericGrammar.py"
+        cls = "GenericGrammar"
+        super().__init__(file, cls, method, reason, *args)

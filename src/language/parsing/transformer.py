@@ -2,6 +2,8 @@ import logging
 
 from lark import Lark, Token, Transformer, logger
 
+from language.parsing.exceptions.internal_exception import GenericGrammarError
+
 logger.setLevel(level=logging.DEBUG)
 
 class GenericGrammar(Lark):
@@ -44,9 +46,7 @@ class GrammarHandler:
             self.parsed_content = self.lark_grammar.parse(self.content)
             return True
         except Exception as e:
-            # TODO define internal exception for this case
-            print(f"Error parsing content: {e}")
-            return False
+            raise GenericGrammarError(method="parse", reason=str(e)) from e
     def transform(self):
         """
         Transforms the parsed content into a dictionary format.

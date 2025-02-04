@@ -4,12 +4,6 @@ import file_operations.exceptions.internal.internal_exceptions as foie
 
 from language.parsing.parser import Parser
 
-""" #TODO Modify Exceptions to use the new internal/external exceptions.
-
-Keyword arguments:
-argument -- description
-Return: return_description
-"""
 
 class SiftFile:
     def __init__(self, file_path: Path, test_mode: bool = False):
