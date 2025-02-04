@@ -4,7 +4,6 @@ import pytest
 
 from file_operations.exceptions.external.file_exceptions import (
     BadExtensionError,
-    SiftFileDoesNotExistError,
 )
 from file_operations.sift_file import SiftFile
 
