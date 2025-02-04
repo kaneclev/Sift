@@ -33,7 +33,6 @@ class ScriptTree(ParsedNode):
         # ! Interface Implementation
         targets = abstract_tree.get_all_targets()
         action_blocks = abstract_tree.get_actions()
-
         instance_action_block_list = parse_action_blocks_to_dataclasses(
             action_block_list=action_blocks
         )

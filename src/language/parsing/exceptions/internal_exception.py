@@ -22,8 +22,8 @@ class TransformerParseError(InternalExceptionError):
         cls = "HLTransformers"
         super().__init__(file, cls, method, reason, *args)
 
-class GenericGrammarError(InternalExceptionError):
+class GrammarHandlerError(InternalExceptionError):
     def __init__(self, method, reason, *args):
-        file = "GenericGrammar.py"
+        file = "transformer.py"
         cls = "GenericGrammar"
         super().__init__(file, cls, method, reason, *args)
