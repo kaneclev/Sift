@@ -37,3 +37,15 @@ class TestSiftFileFormats:
             return  # Test passed, exit early
         except AssertionError:
             pytest.fail("Expected SiftFileDoesNotExistError but it was not raised.")
+
+    @given(st.text())  # Generate random text as file paths
+    def test_siftfile_fuzz_paths(self, random_path):
+        try:
+            file_path = Path(random_path)
+            SiftFile(file_path)  # May raise exceptions
+
+        except (SiftFileDoesNotExistError, NotAFileError, BadExtensionError):
+            pass  # These are expected exceptions for invalid paths
+
+        except Exception as e:
+            pytest.fail(f"Unexpected error: {e}")  # Report unexpected crashes
