@@ -2,9 +2,10 @@ import logging
 
 from lark import Lark, Token, Transformer, logger
 
+from language.grammar_container import GrammarContainer
 from language.parsing.exceptions.internal_exception import GrammarHandlerError
 
-logger.setLevel(level=logging.DEBUG)
+logger.setLevel(level=logging.INFO)
 class GenericGrammar(Lark):
     def __init__(self, grammar: str, start: str, content: str):
         super().__init__(grammar, start=start, parser='lalr')
@@ -34,11 +35,11 @@ class GrammarHandler:
         - parse(): Parses the content using the provided grammar, returning True if the parse was successful and False otherwise
         - transform(): Transforms the parsed content into a dictionary tree
     """
-    def __init__(self, grammar: str, start: str, content: str):
+    def __init__(self, grammar: GrammarContainer, start: str, content: str):
         # Define the grammar and content to be parsed
         self.content = content
-        self.grammar = grammar
-        self.lark_grammar = GenericGrammar(grammar, start, content)
+        self.grammar = grammar.to_string()
+        self.lark_grammar = GenericGrammar(self.grammar, start, content)
         self.parsed_content = None
     def parse(self) -> bool:
         try:

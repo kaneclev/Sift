@@ -2,31 +2,23 @@ import logging
 
 from lark import Lark, Transformer, logger
 
+from language.grammar_container import GrammarContainer
+
 logger.setLevel(level=logging.DEBUG)
-hl_grammar = """
-// Start of the syntax tree (Script (S))
-script: target_list (action_list)?
-// Target list definitions (T but RAW)
-target_list: _TARGETS~1 TL_REGEX_DEFINITION~1
-_TARGETS: /targets\\s*=\\s*/
-TL_REGEX_DEFINITION: /\\[([^\\]]+)\\]/
-// Action list (large tree; AL)
-action_list: action+
-action: target statement_list
-target: SOME_TARGET
-SOME_TARGET: /[a-zA-Z_^:]+:[\\s^\r\n|\r|\n]+/x
-// statement list
-statement_list: /\\{[^\\}]*\\}/
+gram_container = GrammarContainer(start="script")
+gram_container.production_map = {
+    "script": "target_list (action_list)?",
+    "target_list": "_TARGETS~1 TL_REGEX_DEFINITION~1",
+    "_TARGETS": r"/targets\s*=\s*/",
+    "TL_REGEX_DEFINITION": r"/\[[^\]]+\]/",
+    "action_list": "action+",
+    "action": "target statement_list",
+    "target": "SOME_TARGET",
+    "SOME_TARGET": r"/[a-zA-Z_^:]+:[\s^\r\n|\r|\n]+/x",
+    "statement_list": r"/\{[^\}]*\}/"
+}
 
-// Ignoring comments, identified with regex
-COMMENTS: /\\/\\/[^\r\n|\r|\n]+/x
-
-%import common.WS
-%ignore WS
-%ignore COMMENTS
-"""
-
-
+hl_grammar = gram_container.to_string()
 class HighLevelStructure(Lark):
     def __init__(self, file_contents: str):
         super().__init__(hl_grammar, start='script', parser='lalr')

@@ -1,10 +1,10 @@
 from typing import Dict, Union
 
 from language.parsing.transformer import GrammarHandler
-
+from language.grammar_container import GrammarContainer
 
 class SyntaxProcessor:
-    def __init__(self, grammar, start, content):
+    def __init__(self, grammar: GrammarContainer, start, content):
         self.grammar = grammar
         self.start = start
         self.content = content
