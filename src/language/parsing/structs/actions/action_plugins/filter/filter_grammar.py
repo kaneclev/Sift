@@ -1,7 +1,7 @@
 from language.grammar_container import GrammarContainer
 from language.parsing.grammar_transformer_interface import SyntaxProcessor
 
-gram_container = GrammarContainer(start="?filter_expr")
+gram_container = GrammarContainer(start="filter_expr")
 gram_container.production_map = {
     "?filter_expr": "or_expr",
     "?or_expr": "and_expr | or_expr \"or\" and_expr -> or_operator",
@@ -18,7 +18,7 @@ gram_container.production_map = {
 }
 class FilterGrammar(SyntaxProcessor):
     def __init__(self, content):
-        super().__init__(gram_container, 'filter_expr', content)
+        super().__init__(gram_container, content)
     def analyze(self):
         dict_filter_representation = super().analyze()
         return dict_filter_representation

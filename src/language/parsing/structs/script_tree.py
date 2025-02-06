@@ -31,8 +31,8 @@ class ScriptTree(ParsedNode):
     @classmethod
     def generate(cls, abstract_tree: HighLevelTree):
         # ! Interface Implementation
-        targets = abstract_tree.get_all_targets()
-        action_blocks = abstract_tree.get_actions()
+        targets = abstract_tree.targets
+        action_blocks = abstract_tree.actions
         instance_action_block_list = parse_action_blocks_to_dataclasses(
             action_block_list=action_blocks
         )

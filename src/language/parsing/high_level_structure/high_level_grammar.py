@@ -1,10 +1,6 @@
-import logging
-
-from lark import Lark, Transformer, logger
-
 from language.grammar_container import GrammarContainer
+from language.parsing.grammar_transformer_interface import SyntaxProcessor
 
-logger.setLevel(level=logging.DEBUG)
 gram_container = GrammarContainer(start="script")
 gram_container.production_map = {
     "script": "target_list (action_list)?",
@@ -19,35 +15,10 @@ gram_container.production_map = {
 }
 
 hl_grammar = gram_container.to_string()
-class HighLevelStructure(Lark):
-    def __init__(self, file_contents: str):
-        super().__init__(hl_grammar, start='script', parser='lalr')
-        self.contents = file_contents
-    def parse(self):
-        return super().parse(self.contents)
 
-class HLTransformer(Transformer):
-    def script(self, tree):
-        target_list = tree[0]
-        if len(tree) > 1:
-            action_list = tree[1]
-        else:
-            action_list = []
-        return {"target_list": target_list, "action_list": action_list}
-    def target_list(self, tree):
-        token = tree[0]
-        return token.value
-    def action_list(self, tree):
-        return tree
-    def action(self, tree):
-        target_tree, statement_list = tree
-        target = target_tree.children[0].value
-        return {"target": target, "statement_list": statement_list}
-    def statement_list(self, tree):
-        token = tree[0]
-        statement_list_content = token.value
-        return statement_list_content
-
-def analyze(string_content: str):
-    parse_tree = HighLevelStructure(file_contents=string_content).parse()
-    return HLTransformer().transform(parse_tree)
+# TODO: Need to make these implement and use the GrammarHandler.
+class HighLevelGrammar(SyntaxProcessor):
+    def __init__(self, content):
+        super().__init__(gram_container, content)
+    def analyze(self):
+        return super().analyze()

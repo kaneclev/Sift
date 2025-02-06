@@ -135,12 +135,9 @@ class Filter(Action):
         Returns:
             bool: True if `raw_content` can be parsed as a Filter, False otherwise.
         """
-        try:
-            cls._parse(raw_content)
-            return True
-        except Exception as e:
-            print(f'Classification Error: {e} (in Filter.py)')
-            return False
+        cls._parse(raw_content)
+        return True
+
 
     @classmethod
     def _parse(cls, raw_content: str):

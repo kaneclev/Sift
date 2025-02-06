@@ -2,7 +2,7 @@ from abc import abstractmethod
 from dataclasses import dataclass, field  # noqa: N999
 from typing import ClassVar, Dict
 
-import language.parsing.exceptions.action_exceptions as act_except
+import language.parsing.exceptions.internal_exception as act_except
 
 from language.parsing.structs.actions.action.action_types import ActionType
 from language.parsing.structs.parsed_node_interface import ParsedNode

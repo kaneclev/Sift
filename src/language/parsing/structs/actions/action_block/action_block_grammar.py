@@ -12,7 +12,7 @@ action_block_grammar.production_map = {
 
 class ActionBlockGrammar(SyntaxProcessor):
     def __init__(self, content):
-        super().__init__(action_block_grammar, 'block', content)
+        super().__init__(action_block_grammar, content)
         pass
     def analyze(self):
         generic_dict_representation = super().analyze()
