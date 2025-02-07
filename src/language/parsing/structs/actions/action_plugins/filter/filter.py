@@ -335,31 +335,68 @@ class Filter(Action):
         Raises:
             ValueError: If the structure of the atomic value is unexpected.
         """
+        result = None
         if isinstance(value, list):
-            result = []
-            for val in value:
-                if isinstance(val, str):
-                    result.append(val.strip('"'))
-                elif isinstance(val, dict):
-                    # Check for a "contains" key or a "pair" entry.
-                    if identified_filter_type == FilterTypes.ATTRIBUTE_CONTAINS:
-                        result.append([v.strip('"') for v in val.get("contains_attr", [])])
-                    elif identified_filter_type == FilterTypes.TEXT_CONTAINS:
-                        result.append([v.strip('"') for v in val.get("contains_text", [])])
-                    else:
-                        if "pair" in val:
-                            for str_or_pair in val["pair"]:
-                                if isinstance(str_or_pair, str):
-                                    result.append(str_or_pair.strip('"'))
-                                elif isinstance(str_or_pair, dict) and "pair" in str_or_pair:
-                                    result.append([v.strip('"') for v in val["pair"]])
+            if identified_filter_type == FilterTypes.ATTRIBUTE:
+                """ POSSIBLE CASES
+                    - 1.) [str, str] --> just a key-value pair.
+                    -   1.b) [str, dict(contains)] --> this and 1 are always 2-value lists
+                    - 2.) [{pair: []}, {pair: []}...] --> list of key-value pairs
+                    - 3.) {'pair': ['"data-discount"', {'contains_attribute': ['"special"']}]} --> list of key-value pairs with the
+                """
+                result = {}
+                for element in value:
+                    if isinstance(element, str):
+                        if len(value) == 1:
+                            result[element] = LogicalOperatorType.ANY
+                            break
+                        # then this is a str-str case or a str-dict(contains) case
+                        if isinstance(value[1], dict):
+                            # then it is a str-dict(contains) case.
+                            result[value[0]] = value[1].get("contains_attribute", None)
+                            if result[value[0]] is None: # then idk wtf this is
+                                print(f"Couldn't parse attribute filter statement: {value}; (expected a contains item)")
+                            else:
+                                result[value[0]] = {"contains": result[value[0]][0]} # since the contains attribute will have a single string in the list
+                        else: # otherwise its just a str-str
+                            result[value[0]] = value[1]
+                        break
+                    if isinstance(element, dict):
+                        # otherwise, we are dealing with a list of 'pairs'
+                        if (pair_list := element.get("pair", None)) is not None:
+                            if isinstance(pair_list[1], dict):
+                                # then its a contains-attribute
+                                result[pair_list[0]] = pair_list[1].get("contains_attribute", None)
+                                if result[pair_list[0]] is None: # then idk wtf this is
+                                    print(f"Couldn't parse attribute filter statement: {value}; (expected a contains item in {element})")
+                                else:
+                                    contains_item = result[pair_list[0]][0]
+                                    result[pair_list[0]] = {"contains": contains_item} # since the contains attribute will have a single string in the list
+                            else:
+                                # otherwise its just a {pair: [str, str]}
+                                result[pair_list[0]] = pair_list[1]
                         else:
-                            raise ValueError(f"Unrecognized filter structure in atomic value: {val}")
+                            print(f"Couldn't parse attribute filter statement: {value} (expected this to be a pair dict list)")
+                # If its an attribute, we can make them into key-value pairs.
+                # then we put it into a key-val pair
+            if identified_filter_type == FilterTypes.TEXT:
+                result = []
+                if isinstance(value, list):
+                    for text_item in value:
+                        if isinstance(text_item, str):
+                            result.append(text_item)
+                        elif isinstance(text_item, dict):
+                            contains_map = {"contains": []}
+                            if (contains_text_item_list := text_item.get("contains_text")) is not None:
+                                contains_map["contains"] = contains_text_item_list
+                                result.append(contains_map)
+                            else:
+                                raise TypeError(f"Expected the text filter dict to have the key, contains_text, but here it is instead: {text_item}")
+                else:
+                    raise TypeError(f'Expected the text filter to be of type list, instead found it to be of type: {value}')
+            if identified_filter_type == FilterTypes.TAG:
+                return value
             return result
-        elif isinstance(value, str):
-            return value.strip('"')
-        else:
-            return value
 
     def assign_metadata(self, raw_content: str) -> None:
         """

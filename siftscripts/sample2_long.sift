@@ -34,7 +34,7 @@ Amazon: {
     extract from amazon_offers where text contains "limited" -> amazon_limited_offers;
     
     // Extract images: only jpg files
-    extract where tag "img" and attribute "src": ".*\\.jpg" -> amazon_images;
+    extract where tag "img" and attribute "src": "jpg" -> amazon_images;
     
     // Extract top reviews: divs with either a 5 or 4 star rating
     extract where tag "div" and (attribute "data-rating": "5" or attribute "data-rating": "4") -> amazon_top_reviews;
@@ -92,7 +92,7 @@ Wikipedia: {
     extract where tag "a" and attribute "href": "^https://.*" -> wiki_external_links;
     
     // Extract table rows with specific classes and types for highlighted data
-    extract where tag "tr" and attribute ["class": "data-row", "type": "highlight"] -> wiki_highlighted_rows;
+    extract where tag "tr" and attribute ["class": "data-row", "type":  "highlight"] -> wiki_highlighted_rows;
     
     // From external links, further filter out any that mention "Wikipedia"
     extract from wiki_external_links where not text contains "Wikipedia" -> wiki_nonwiki_links;

@@ -5,6 +5,7 @@ class LogicalOperatorType(Enum):
     OR = 'or'
     AND = 'and'
     NOT = 'not'
+    ANY = "ANY"
 
 def match_logical_op_type(op_str: str) -> LogicalOperatorType:
     if op_str == 'or':

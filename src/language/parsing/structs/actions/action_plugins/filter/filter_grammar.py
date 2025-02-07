@@ -13,7 +13,7 @@ gram_container.production_map = {
     "attribute_filter": "\"attribute\" WS? (ESCAPED_STRING (WS? \":\" WS? attribute_value_expr)? | \"[\" WS? pair (WS? \",\" WS? pair)* WS? \"]\") -> attribute",
     "?attribute_value_expr": "\"contains\" WS? (ESCAPED_STRING | \"[\" WS? ESCAPED_STRING (WS? \",\" WS? ESCAPED_STRING)* WS? \"]\") -> contains_attribute | ESCAPED_STRING",
     "pair": "ESCAPED_STRING WS? \":\" WS? attribute_value_expr",
-    "?contains_text": "\"contains\" WS? (ESCAPED_STRING | \"[\" WS? ESCAPED_STRING (WS? \",\" WS? ESCAPED_STRING)* WS? \"]\")",
+    "contains_text": "\"contains\" WS? (ESCAPED_STRING | \"[\" WS? ESCAPED_STRING (WS? \",\" WS? ESCAPED_STRING)* WS? \"]\")",
     "text_filter": "\"text\" WS? (contains_text | ESCAPED_STRING | \"[\" WS? ESCAPED_STRING (WS? \",\" WS? ESCAPED_STRING)* WS? \"]\") -> text"
 }
 class FilterGrammar(SyntaxProcessor):
