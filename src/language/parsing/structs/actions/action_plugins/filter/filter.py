@@ -388,7 +388,7 @@ class Filter(Action):
                         elif isinstance(text_item, dict):
                             contains_map = {"contains": []}
                             if (contains_text_item_list := text_item.get("contains_text")) is not None:
-                                contains_map["contains"] = contains_text_item_list
+                                contains_map["contains"] = contains_text_item_list[0]
                                 result.append(contains_map)
                             else:
                                 raise TypeError(f"Expected the text filter dict to have the key, contains_text, but here it is instead: {text_item}")

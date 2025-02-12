@@ -8,7 +8,7 @@ from language.parsing.exceptions.internal_exception import GrammarHandlerError
 logger.setLevel(level=logging.INFO)
 class GenericGrammar(Lark):
     def __init__(self, grammar: str, start: str, content: str):
-        super().__init__(grammar, start=start, parser='lalr')
+        super().__init__(grammar, start=start, parser='lalr', cache=True)
         self.grammar = grammar
         self.content = content
         pass

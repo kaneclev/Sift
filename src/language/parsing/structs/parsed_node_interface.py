@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import Generic, TypeVar
 
 T = TypeVar("T")
@@ -7,6 +7,8 @@ Node = TypeVar("Node", bound="ParsedNode")  # Generic type bound to ParsedNode
 
 @dataclass
 class ParsedNode(ABC, Generic[T]):
+    def to_dict(self):
+        return asdict(self)
     @classmethod
     @abstractmethod
     def generate(cls: Node, data: T) -> Node:

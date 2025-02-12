@@ -7,6 +7,7 @@ from file_operations.exceptions.external.file_exceptions import (
     NotAFileError,
     SiftFileDoesNotExistError,
 )
+from language.parsing.ast.ast_json_converter import SiftASTConverter
 from language.parsing.parser import Parser
 
 
@@ -18,7 +19,12 @@ class SiftFile:
         self.tree = None
 
         self._verify()
-
+    def sift_script_to_json(self):
+        if not self.tree:
+            raise ValueError(f"No tree has been generated...")
+        else:
+            converter = SiftASTConverter(self.tree)
+            return converter.to_json()
     def parse_file(self):
         self.data = self._read_file()
         self.parser = Parser(self.data)
