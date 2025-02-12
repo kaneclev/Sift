@@ -1,3 +1,5 @@
+import os
+
 from pathlib import Path
 
 import file_operations.exceptions.internal.internal_exceptions as foie
@@ -21,9 +23,9 @@ class SiftFile:
         self._verify()
     def sift_script_to_json(self):
         if not self.tree:
-            raise ValueError(f"No tree has been generated...")
+            raise ValueError("No tree has been generated...")
         else:
-            converter = SiftASTConverter(self.tree)
+            converter = SiftASTConverter(self.tree, filename=os.path.basename(self.file_path))
             return converter.to_json()
     def parse_file(self):
         self.data = self._read_file()

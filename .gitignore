@@ -11,3 +11,5 @@ wheels/
 
 .hypothesis
 .DS_Store
+
+json_conversions

@@ -13,6 +13,7 @@ dependencies = [
     "hypothesis>=6.125.1",
     "ujson>=5.10.0",
     "orjson>=3.10.15",
+    "scrapling>=0.2.93",
 ]
 
 [tool.uv]
