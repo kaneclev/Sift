@@ -44,7 +44,7 @@ class SiftFile:
             converter = SiftASTConverter(self.tree, filename=os.path.basename(self.file_path))
             return converter.to_json()
 
-    def parse_file(self):
+    def parse_file(self) -> ScriptTree:
         """ The main API method of the SiftFile. Performs the full conversion from file to ScriptTree (AST) object.
         
         Keyword arguments:
@@ -60,7 +60,7 @@ class SiftFile:
                              *or* the process of parsing this instance's content to a ScriptTree.")
         return self.tree
 
-    def _generate_parse_tree(self):
+    def _generate_parse_tree(self) -> Union[Parser, None]:
         """ Internal helper method for the parse_file API function.
         Uses the instance's Parser object, which was defined in the parse_file before our call,
         to parse our instance's 'data' member into a ScriptTree object.
@@ -76,7 +76,7 @@ class SiftFile:
             return self.parser.parse_content_to_tree()
         return None
 
-    def _verify(self):
+    def _verify(self) -> None:
         """ Helper method which calls other utility functions for verifying the validity of a Sift file.
         
         Keyword arguments:
