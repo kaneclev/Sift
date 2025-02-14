@@ -14,6 +14,10 @@ dependencies = [
     "ujson>=5.10.0",
     "orjson>=3.10.15",
     "scrapling>=0.2.93",
+    "swiftshadow>=2.0.1",
+    "curl-cffi>=0.7.4",
+    "selenium>=4.28.1",
+    "python-dotenv>=1.0.1",
 ]
 
 [tool.uv]
