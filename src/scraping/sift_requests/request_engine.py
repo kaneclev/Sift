@@ -3,12 +3,12 @@ import pickle
 import time
 
 import undetected_chromedriver as uc
-from selenium_stealth import stealth
 
 from curl_cffi import requests
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium_stealth import stealth
 
 from scraping.sift_requests.request_logger import Logger
 
@@ -69,7 +69,7 @@ class BrowserRequest:
                              "Chrome/133.0.0.0 Safari/537.36")
         # Set window size to mimic a typical desktop.
         options.add_argument("--window-size=1920,1080")
-        
+
         self.logger.info("Creating undetected Chrome driver in new headless mode...")
         driver = uc.Chrome(options=options)
         stealth(driver,
@@ -95,7 +95,7 @@ class BrowserRequest:
         self.logger.info("Loading cookies from file...")
         with open(self.cookie_file, "rb") as cookie_f:
             cookies = pickle.load(cookie_f)
-        
+
         # Add each cookie to the browser.
         for cookie in cookies:
             try:
@@ -124,14 +124,14 @@ class BrowserRequest:
         self.logger.info(f"Navigating to URL: {self.url} ...")
         # First, open the URL so that the domain is loaded.
         self.driver.get(self.url)
-        
+
         # Load cookies if available.
         self.load_cookies()
-        
+
         # Refresh the page to apply the cookies.
         self.logger.info("Refreshing page to apply cookies...")
         self.driver.refresh()
-        
+
         # Wait for page load (or a specific element) using Selenium's explicit wait.
         try:
             WebDriverWait(self.driver, 10).until(
@@ -139,16 +139,16 @@ class BrowserRequest:
             )
         except Exception as e:
             self.logger.error(f"Error waiting for page load: {e}")
-        
+
         # Allow any additional JS requests to complete.
         time.sleep(30)
-        
+
         page_source = self.driver.page_source
         self.logger.info(f"Retrieved page source of length {len(page_source)}")
-        
+
         # Save updated cookies.
         self.save_cookies()
-        
+
         return page_source
 
     def quit(self):

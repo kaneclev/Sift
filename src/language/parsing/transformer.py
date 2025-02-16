@@ -115,17 +115,14 @@ class GrammarHandler:
         except Exception as e:
             raise GrammarHandlerError(method="parse", reason=str(e)) from e
 
-    def transform(self) -> Union[Dict, None]:
+    def transform(self) -> Dict:
         """ Transforms the content parsed by Lark into a dictionary format.
 
         Returns:
             dict: The transformed parsed content.
-            None: If the parse() method hasn't been called on this instance.
         """
-        # TODO: Should this raise an internal exception instead?
-        if self.parsed_content is None:
-            print("No parsed content to transform.")
-            return None
+        if not self.parsed_content:
+            self.parse()
 
         transformer = GenericTransformer()
         tree_in_dict_form = transformer.transform(self.parsed_content)

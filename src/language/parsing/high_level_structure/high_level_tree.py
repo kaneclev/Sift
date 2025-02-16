@@ -28,6 +28,7 @@ class HighLevelTree(ParsedNode):
 
     @classmethod
     def generate(cls, file_contents: str):
+
         parsed_content = HighLevelGrammar(file_contents).analyze()
         return cls(parsed_content=parsed_content)
 

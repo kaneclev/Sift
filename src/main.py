@@ -1,6 +1,5 @@
 from prep import prep  # noqa: F401, I001
 from file_operations.sift_file import SiftFile  # noqa: F401
-from scraping.sift_requests.request_engine import TargetRequest, BrowserRequest
 
 
 def main():

@@ -1,4 +1,3 @@
-import os
 
 from dataclasses import asdict
 
@@ -9,7 +8,7 @@ from language.parsing.ast.script_tree import ScriptTree
 
 class SiftASTConverter:
     """ Utility class for converting a ScriptTree object into different forms. """
-    
+
     def __init__(self, ast: ScriptTree, filename: str, store_repr_as_file: bool = False):
         """ Constructor.
         Takes a ScriptTree object (ast) and the *base name* of the file used to generate the ScriptTree.
@@ -37,7 +36,7 @@ class SiftASTConverter:
         None.
         Return: (str) The JSON representation of the ScriptTree dataclass.
         """
-        
+
         json_bytes = orjson.dumps(asdict(self.tree), option=orjson.OPT_INDENT_2)
         if self.should_store:
             with open(self.json_path, "wb") as f:
