@@ -3,7 +3,7 @@ name = "sift"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "lark>=1.2.2",
     "pytest-cov>=6.0.0",
@@ -14,10 +14,11 @@ dependencies = [
     "ujson>=5.10.0",
     "orjson>=3.10.15",
     "scrapling>=0.2.93",
-    "swiftshadow>=2.0.1",
     "curl-cffi>=0.7.4",
     "selenium>=4.28.1",
     "python-dotenv>=1.0.1",
+    "undetected-chromedriver>=3.5.5",
+    "selenium-stealth>=1.0.6",
 ]
 
 [tool.uv]
