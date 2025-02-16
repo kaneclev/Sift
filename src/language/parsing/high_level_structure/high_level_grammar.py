@@ -16,7 +16,6 @@ gram_container.production_map = {
 
 hl_grammar = gram_container.to_string()
 
-# TODO: Need to make these implement and use the GrammarHandler.
 class HighLevelGrammar(SyntaxProcessor):
     def __init__(self, content):
         super().__init__(gram_container, content)
