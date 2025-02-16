@@ -5,7 +5,7 @@ from typing import Union
 class BaseFileError(Exception):
     """ The base class for the File exception type.
 
-    *Not to be raised directly; purely heritable.*
+    *Not to be raised directly; purely inheritable.*
     """
     def __init__(self, filepath: Union[Path, str]):
         """ The constructor for the BaseFileError class.
