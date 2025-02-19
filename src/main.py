@@ -9,6 +9,7 @@ def main():
     test = SiftFile(file_path=r"C:\Users\Kane\projects\Sift\siftscripts\sample2_long.sift")
     test.parse_file()
     # When finished, quit the driver to close the browser.
+    print(test.get_tree_obj())
 
 if __name__ == "__main__":
     main()

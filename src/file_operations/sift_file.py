@@ -15,6 +15,9 @@ from language.parsing.ast.script_tree import ScriptTree
 from language.parsing.parser import Parser
 
 
+################################################
+# #! Main API For Parsing SiftScripts
+################################################
 class SiftFile:
     """ The interface for creating and parsing a sift script.
     The SiftFile class takes a filepath parameter into its constructor, validates the path,

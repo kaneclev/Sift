@@ -16,35 +16,72 @@ from language.parsing.structs.parsed_node_interface import ParsedNode
 
 @dataclass
 class HighLevelTree(ParsedNode):
+    """ Creates an intermediate representation of the Sift file for the ScriptTree class to parse.
+    Used by the Parser class. Offers methods for parsing file content into a dict-like half-parsed AST,
+    which can then be used to define a more robust, precise AST by the ScriptTree class.
+    Args:
+        ParsedNode (abstract): The parent class for all AST nodes.
+
+    Raises:
+        NoRawContentProvidedError: Raised if there was no content to parse provided.
+        TransformerParseError: Raised if HighLevelGrammar returned a malformed high-level AST.
+        MultipleTargetListDefinitionsError: Raised if HighLevelGrammar detected multiple 'targets' lists
+        TypeError: Raised if there were unexpected types present in the AST.
+        ValueError: Raised if there were unexpected values or non-existent expected values in the AST.
+        KeyError: Raised if there were expected to be particular keys in the AST dict, but they weren't found.
+    """
     parsed_content: Dict
     # ! Expected to be: { "target": "url", }
     targets: Dict[str, str] = field(default_factory=list)
     # ! Expected to be: [ { "target_name", "statement_list"}, ... ]
     actions: List[Dict[str, str]] = field(default_factory=list)
 
-    def __init__(self, parsed_content: str):
-        self.parsed_content = parsed_content
+    def __init__(self, parsed_content: Dict):
+        """ Takes the resulting AST generated from the HighLevelGrammar class to define the instance.
+
+        The factory method 'generate' uses HighLevelGrammar to create the AST, and the HighLevelTree
+        class validates that generated AST.
+
+        Args:
+            parsed_content (dict): The AST created by HighLevelGrammar.
+        """
+        self.AST = parsed_content
         self.validate()
 
     @classmethod
     def generate(cls, file_contents: str):
+        """ Given the raw sift file contents, generates an instance of HighLevelTree.
 
+        Provides HighLevelGrammar with the file contents before calling analyze() to get the
+        AST. Returns an instance of HighLevelTree, constructed using the AST.
+
+        Args:
+            file_contents (str): The entire raw contents of the Sift file
+
+        Returns:
+            HighLevelTree: The corresponding generated instance.
+        """
         parsed_content = HighLevelGrammar(file_contents).analyze()
         return cls(parsed_content=parsed_content)
 
-    def validate(self):
+    def validate(self) -> None:
+        """ Validates the correctness of the generated AST.
+        Raises an exception if the AST is malformed for any reason.
+        Returns:
+            None.
+        """
         script_values_list = []
         mapped_members_to_validate = {
             "targets_mapping": None,
             "actions_list": []
         }
         # check to make sure SiftFile actually parsed something from the file.
-        if not self.parsed_content:
+        if not self.AST:
             raise NoRawContentProvidedError()
         # check to make sure the 'script' key exists, denoting the list of elements that the HighLevelGrammar parsed.
-        if (script_values_list := self.parsed_content.get("script", None)) is None:
+        if (script_values_list := self.AST.get("script", None)) is None:
             raise TransformerParseError("validate()", f"The dict-representation of the file here: \
-                                        {self.parsed_content} does not contain the 'script' key as expected.")
+                                        {self.AST} does not contain the 'script' key as expected.")
         for script_element in script_values_list:
             # Now we are going to walk through the key value pairs and populate our memeber variables (targets, actions)
             if isinstance(script_element, dict):
@@ -67,16 +104,28 @@ class HighLevelTree(ParsedNode):
 
         # Final validation for the map.
         if not mapped_members_to_validate["actions_list"]:
-            raise ValueError(f"Validation failed for the 'actions' field for HighLevelTree. Parsed Content: {self.parsed_content}")
+            raise ValueError(f"Validation failed for the 'actions' field for HighLevelTree. Parsed Content: {self.AST}")
         if not mapped_members_to_validate["targets_mapping"]:
-            raise ValueError(f"Validation failed for the 'targets' field for HighLevelTree. Parsed Content: {self.parsed_content}")
+            raise ValueError(f"Validation failed for the 'targets' field for HighLevelTree. Parsed Content: {self.AST}")
 
         # Otherwise, everything is a-okay, and we can assign the mapped content to our own members
         self.targets = mapped_members_to_validate["targets_mapping"]
         self.actions = mapped_members_to_validate["actions_list"]
-        return True
 
-    def parse_targets_definitions(self, target_definitions_string: str):
+    def parse_targets_definitions(self, target_definitions_string: str) -> Dict[str, str]:
+        """ Parses the target list definition from the AST.
+
+        Given the raw representation of the targets list provided by self.AST,
+        transforms the string into a dict representation, so that it can be assigned to
+        self.targets.
+
+        Args:
+            target_definitions_string (str): self.AST's interpretation of the 'targets'
+                                            list definition in the Sift file.
+
+        Returns:
+            dict[str, str]: The targets list such that { 'targ_name': 'url', ... }
+        """
         no_brackets = target_definitions_string.replace('[', "").replace(']', "")
         no_newlines = no_brackets.replace("\n", "")
         no_spaces = no_newlines.replace(" ", "")
@@ -89,7 +138,41 @@ class HighLevelTree(ParsedNode):
             targets_dict[key] = val
         return targets_dict
 
-    def parse_action_list(self, action_list: list) -> list:
+    def parse_action_list(self, action_list: List[Dict[str, List[Dict[str, List]]]]) -> List[Dict[str, List]]:
+        """ Parses the action_list value from self.AST into a more concise form.
+        Given the self.AST's interpretation of the list of actions, expected to be:
+        [
+
+            {
+
+            'action': [ {'target': ['Amazon: ']}, {'statement_list': [ ... ]}]
+
+            }
+
+        ]
+
+        parse_action_list transforms this interpretation to the form:
+
+        [
+
+            {
+
+                'target': [ <statement_list> ]
+
+            }
+
+        ]
+
+        Args:
+            action_list (List[Dict[str, List[Dict[str, List]]]]): The raw action list interpretation by self.AST.
+
+        Raises:
+            TypeError: Raised if the types of structures in action_list are unexpeccted.
+            ValueError: Raised if the action_list is missing key-pair values expected to be present in the action_list.
+
+        Returns:
+            List[Dict[str, List]]: The more concise, interpretable representation to be assigned to self.actions.
+        """
         parsed_action_list = []
         for action_dict in action_list:
             if not isinstance(action_dict, dict):
@@ -101,11 +184,29 @@ class HighLevelTree(ParsedNode):
             parsed_action_list.append(self.parse_action(action_contents))
         return parsed_action_list
 
-    def parse_action(self, action: list) -> dict:
-        """
-        all elements in the nested 'action' value list inside an action_list element should be a dict
-        example 'action' value:
-            {'action': [{'target': ['Amazon: ']}, {'statement_list': [ ... ]}] }
+    def parse_action(self, action: List[Dict[str, List]]) -> Dict[str, List]:
+        """ Parses a single 'action' from the AST into a more simple form.
+        *Helper method for parse_action_list*
+
+        Given an 'action' generated by self.AST of the form:
+        [
+            {
+                'target': ['Amazon: ']
+            },
+            {
+                'statement_list': [ ... ]
+            }
+        ]
+
+        parse_action transforms this into the form:
+        {
+            'targ_name': [ <statement list> ]
+        }
+        Raises:
+            TypeError: Raised if any of the entries in 'action' are not dicts as expected.
+            KeyError: Raised if any of the entries in action do not have the expected key-value pairs.
+        Returns:
+            Dict[str, List[str]]: The transformed, simpler action.
         """
         if any(not isinstance(attribute, dict) for attribute in action):
             raise TypeError(f"The 'action' list containing the target and the statement list here: {action} \
@@ -123,6 +224,7 @@ class HighLevelTree(ParsedNode):
         return action_entry_dict
 
     def __str__(self):
+        """ __str__ method required to be implemented by base class """
         pass
 
 

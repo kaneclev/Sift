@@ -1,6 +1,11 @@
 from language.grammar_container import GrammarContainer
 from language.parsing.grammar_transformer_interface import SyntaxProcessor
 
+""" The HighLevelGrammar definition using the GrammarContainer class.
+
+The GrammarContainer instance and the associated production_map field
+defines the Lark grammar to be interpreted by SyntaxProcessor.
+"""
 gram_container = GrammarContainer(start="script")
 gram_container.production_map = {
     "script": "target_list (action_list)?",
@@ -14,10 +19,17 @@ gram_container.production_map = {
     "statement_list": r"/\{[^\}]*\}/"
 }
 
-hl_grammar = gram_container.to_string()
-
 class HighLevelGrammar(SyntaxProcessor):
+    """ Defines an interactor class for HighLevelTree to use.
+    Inherits from SyntaxProcessor, who handles the parsing of a given Sift grammar.
+    """
     def __init__(self, content):
+        """ Initializes the parent SyntaxProcessor for use by HighLevelTree.
+        HighLevelTree provides the content-to-parse (sift file content) which
+        is then turned into a high-level, mostly raw, intermediate representation
+        of the provided Sift script.
+
+        Args:
+            content (str): The content of the Sift script file.
+        """
         super().__init__(gram_container, content)
-    def analyze(self):
-        return super().analyze()
