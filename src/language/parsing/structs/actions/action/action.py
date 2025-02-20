@@ -54,7 +54,8 @@ class Action(ParsedNode):
         elif len(claimed_owners) == 0:
             raise act_except.NoDefinitionFoundError(content_to_classify)
         else:
-            return claimed_owners[0].generate(content_to_classify)
+            generated_obj = claimed_owners[0].generate(content_to_classify)
+            return generated_obj
 
     def __str__(self):
         """

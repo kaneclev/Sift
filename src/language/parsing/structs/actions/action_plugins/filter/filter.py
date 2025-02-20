@@ -140,7 +140,7 @@ class Filter(Action):
 
 
     @classmethod
-    def _parse(cls, raw_content: str):
+    def _parse(cls, raw_content: str) -> tuple[Dict, Dict]:
         """
         Parses the `raw_content` string using `FilterGrammar` to produce a dictionary
         representation of the filter.
@@ -157,11 +157,10 @@ class Filter(Action):
         Raises:
             Exception: If the `FilterGrammar` fails to parse `raw_content`.
         """
-        instance: "Filter" = cls()
-        instance.assign_metadata(raw_content)
-        handler: FilterGrammar = FilterGrammar(instance.metadata["raw_filter"])
+        metadata = cls.get_metadata(raw_content)
+        handler: FilterGrammar = FilterGrammar(metadata["raw_filter"])
         content_as_dict: dict = handler.analyze()
-        return content_as_dict
+        return (content_as_dict, metadata)
 
     @classmethod
     def generate(cls, raw_content: str) -> "Filter":
@@ -181,8 +180,9 @@ class Filter(Action):
         Raises:
             ValueError: If the filter structure is unrecognized.
         """
-        parsed_data: dict = cls._parse(raw_content)
+        parsed_data, metadata = cls._parse(raw_content)
         filter_obj = cls._build_filter(parsed_data)
+        filter_obj.metadata = metadata
         return filter_obj
 
     @classmethod
@@ -397,8 +397,8 @@ class Filter(Action):
             if identified_filter_type == FilterTypes.TAG:
                 return value
             return result
-
-    def assign_metadata(self, raw_content: str) -> None:
+    @classmethod
+    def get_metadata(cls, raw_content: str) -> Dict:
         """
         Analyzes a DSL statement and extracts three main pieces of metadata:
 
@@ -417,6 +417,7 @@ class Filter(Action):
         Returns:
             None: Updates the `metadata` dictionary in-place.
         """
+        metadata = {}
         extract_from_where = re.compile(
             r'''^\s*
                 extract
@@ -445,24 +446,24 @@ class Filter(Action):
         extract_from_statement: Union[re.Match, None] = extract_from_where.search(raw_content)
         extract_where_statement: Union[re.Match, None] = extract_where.search(raw_content)
 
-        self.metadata["from_alias"] = ""
-        self.metadata["raw_filter"] = ""
-        self.metadata["assignment"] = ""
+        metadata["from_alias"] = ""
+        metadata["raw_filter"] = ""
+        metadata["assignment"] = ""
 
         if extract_from_statement:
             alias: str = extract_from_statement.group(1)
             filt: str = extract_from_statement.group(2)
             assign: str = extract_from_statement.group(3)
-            self.metadata["from_alias"] = alias
-            self.metadata["raw_filter"] = filt
-            self.metadata["assignment"] = assign
+            metadata["from_alias"] = alias
+            metadata["raw_filter"] = filt
+            metadata["assignment"] = assign
         if extract_where_statement:
             filt: str = extract_where_statement.group(1)
             assign: str = extract_where_statement.group(2)
-            self.metadata["raw_filter"] = filt
-            self.metadata["assignment"] = assign
+            metadata["raw_filter"] = filt
+            metadata["assignment"] = assign
 
-        return
+        return metadata
 
     def validate(self):
         """
@@ -501,7 +502,7 @@ class Filter(Action):
             str: A formatted multi-line string representing the filter tree.
         """
         indent_str = " " * indent
-        lines = [f"{indent_str}Filter({self.operator or ''} {self.filter_type or ''} {self.value or ''})"]
+        lines = [f"{indent_str}Filter({self.operator or ''} {self.filter_type or ''} {self.value or ''} {self.metadata or ''})"]
         if self.operands:
             for i, operand in enumerate(self.operands):
                 prefix = "└── " if i == len(self.operands) - 1 else "├── "

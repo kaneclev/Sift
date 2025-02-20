@@ -15,9 +15,6 @@ from language.parsing.ast.script_tree import ScriptTree
 from language.parsing.parser import Parser
 
 
-################################################
-# #! Main API For Parsing SiftScripts
-################################################
 class SiftFile:
     """ The interface for creating and parsing a sift script.
     The SiftFile class takes a filepath parameter into its constructor, validates the path,
@@ -138,7 +135,7 @@ class SiftFile:
                                            expected_type="Path",
                                            given_type=str(type(self.file_path)))
 
-    def show_tree(self) -> Union[ScriptTree, None]:
+    def show_tree(self) -> None:
         """ Debugging method for displaying the ScriptTree object in a human-friendly manner.
 
         Keyword arguments:
@@ -149,8 +146,7 @@ class SiftFile:
         """
 
         if isinstance(self.tree, ScriptTree):
-            return str(self.tree)
-        return None
+            print(str(self.tree))
 
     def get_tree_obj(self) -> Union[ScriptTree, None]:
         """ Returns the instance's ScriptTree object.
