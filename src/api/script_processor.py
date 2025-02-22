@@ -1,13 +1,7 @@
-import heapq
 import os
 
 from typing import Dict, List
 
-from api.action_block_heap_node import (
-    ActionBlockHeapNode,
-    generate_action_block_heap_node,
-)
-from api.target_heap_node import TargetHeapNode, generate_target_heap_nodes
 from file_operations.sift_file import ScriptTree, SiftFile
 from language.parsing.ast.ast_json_converter import SiftASTConverter
 
@@ -44,14 +38,7 @@ class ScriptProcessor:
             print(f'JSON representation: \n {self.json}')
 
     def to_queue(self):
-        self._assign_priority()
-        pass
-    def _assign_priority(self) -> List[ActionBlockHeapNode]:
-        #! NOTE: This implies that regardless of the ordering of the action blocks, we execute based on the ordering of the targets list. This might be cool, tho
-        targ_priority_queue: List[TargetHeapNode] = generate_target_heap_nodes(self.json["targets"])
-        action_block_priority_queue: List[ActionBlockHeapNode] = generate_action_block_heap_node(targ_priority_queue.copy(),
-                                                                                                 action_blocks=self.json["action_blocks"])
-        return action_block_priority_queue
+        ...
 
 
     def _generate_siftfile(self) -> SiftFile:
