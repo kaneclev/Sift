@@ -2,7 +2,7 @@
 from dataclasses import asdict
 
 import orjson
-
+import os
 from language.parsing.ast.script_tree import ScriptTree
 
 
@@ -21,6 +21,9 @@ class SiftASTConverter:
         self.tree = ast
         filename = filename.split('.')[0] + ".json"
         self.json_path = f"../json_conversions/{filename}"
+        if not os.path.exists(os.path.dirname(self.json_path)):
+            print(f'No JSON dir found... generating one at {os.path.abspath(self.json_path)}')
+            os.makedirs(os.path.dirname(self.json_path))
         pass
 
     def to_json(self, should_store: bool) -> dict:

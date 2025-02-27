@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import Dict, List
 
-from language.parsing.structs.actions.action.action import Action
-from language.parsing.structs.actions.action_block.action_block_grammar import (
+from language.parsing.ast.actions.action.action import Action
+from language.parsing.ast.actions.action_block.action_block_grammar import (
     ActionBlockGrammar,
 )
-from language.parsing.structs.parsed_node_interface import ParsedNode
+from language.parsing.ast.parsed_node_interface import ParsedNode
 
 
 @dataclass

@@ -39,16 +39,16 @@ import re
 from dataclasses import dataclass  # noqa: N999
 from typing import Dict, Iterator, List, Optional, Union
 
-from language.parsing.structs.actions.action.action import Action
-from language.parsing.structs.actions.action.action_types import ActionType
-from language.parsing.structs.actions.action_plugins.filter.expression_types import (
+from language.parsing.ast.actions.action.action import Action
+from language.parsing.ast.actions.action.action_types import ActionType
+from language.parsing.ast.actions.action_plugins.filter.expression_types import (
     LogicalOperatorType,
     match_logical_op_type,
 )
-from language.parsing.structs.actions.action_plugins.filter.filter_grammar import (
+from language.parsing.ast.actions.action_plugins.filter.filter_grammar import (
     FilterGrammar,
 )
-from language.parsing.structs.actions.action_plugins.filter.filter_types import (
+from language.parsing.ast.actions.action_plugins.filter.filter_types import (
     FilterTypes,
     match_filter_type,
 )

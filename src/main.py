@@ -3,7 +3,9 @@ from api.script_processor import ScriptProcessor  # noqa: F401
 
 
 def main():
-    proc = ScriptProcessor(sift_file="C:/Users/Kane/projects/Sift/siftscripts/sample2_long.sift")
+    proc = ScriptProcessor(
+        sift_file="/Users/kanecleveland/projects/Sift/siftscripts/sample2_long.sift",
+        save_json=True)
     proc.to_queue()
 if __name__ == "__main__":
     main()

@@ -10,8 +10,8 @@ from language.parsing.exceptions.internal_exception import (
     NoRawContentProvidedError,
     TransformerParseError,
 )
-from language.parsing.high_level_structure.high_level_grammar import HighLevelGrammar
-from language.parsing.structs.parsed_node_interface import ParsedNode
+from language.parsing.ast.high_level_structure.high_level_grammar import HighLevelGrammar
+from language.parsing.ast.parsed_node_interface import ParsedNode
 
 
 @dataclass
