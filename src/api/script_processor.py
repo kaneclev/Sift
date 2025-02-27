@@ -58,7 +58,8 @@ class ScriptProcessor:
         converter = SiftASTConverter(self.ast, self.sift_file_basename)
         # NOTE: We always convert to json for queue reasons regardless of if the options suggest we save, show or not.
         self.json = converter.to_json(should_store=save_json)
-
+        if not self.json:
+            raise ValueError(f'There was an issue converting the AST to JSON representation: (self.json = {self.json})')
         if self.options.get('show_ast'):
             self.sift_file_instance.show_tree()
         if self.options.get('show_json'):
