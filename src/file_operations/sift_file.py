@@ -23,8 +23,11 @@ class SiftFile:
 
     def __init__(self, file_path: Path):
         self.file_path = file_path
+        # the raw sift script content
         self.data = None
+        # the parser instance we will create
         self.parser = None
+        # the AST
         self.tree = None
 
         self._verify()
