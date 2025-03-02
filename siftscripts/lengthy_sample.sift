@@ -1,9 +1,5 @@
 // Define the targets
-targets = [
-    Google: "https://www.google.com",
-    Amazon: "https://www.amazon.com",
-    eBay: "https://www.ebay.com"
-]
+targets = [Google: "https://www.google.com", Amazon: "https://www.amazon.com", eBay: "https://www.ebay.com"]
 
 // Action block for Google
 Google: {

@@ -4,7 +4,7 @@ from typing import Dict, List
 
 from file_operations.sift_file import ScriptTree, SiftFile
 from language.parsing.ast.ast_json_converter import SiftASTConverter
-
+from IR.read_tree import TreeReader
 
 ################################################
 # #! Main API For Parsing SiftScripts
@@ -26,6 +26,7 @@ class ScriptProcessor:
             "show_ast": False,
             "show_json": False,
             "save_json": False,
+            "to_ir": True
         }
         self.options.update(options)
         self.sift_file_instance = self._generate_siftfile()
@@ -64,6 +65,11 @@ class ScriptProcessor:
             self.sift_file_instance.show_tree()
         if self.options.get('show_json'):
             print(f'JSON representation: \n {self.json}')
+        if self.options.get('to_ir'):
+            self.to_ir()
+
+    def to_ir(self):
+        TreeReader.ast_to_instructions(ast=self.ast)
 
     def to_queue(self):
         """

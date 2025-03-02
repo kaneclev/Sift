@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import Dict, List
 
-from language.parsing.ast.high_level_structure.high_level_tree import HighLevelTree
 from language.parsing.ast.actions.action_block.action_block import ActionBlock
+from language.parsing.ast.high_level_structure.high_level_tree import HighLevelTree
 from language.parsing.ast.parsed_node_interface import ParsedNode
 
 
