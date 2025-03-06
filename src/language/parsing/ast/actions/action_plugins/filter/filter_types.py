@@ -1,11 +1,5 @@
-from enum import Enum
+from language.parsing.ast.enums import HTMLPropertyType as FilterTypes
 
-
-class FilterTypes(Enum):
-    TEXT = "text"
-    ATTRIBUTE = "attribute"
-    TAG = "tag"
-    UNKNOWN = ""
 
 def match_filter_type(stmt: dict) -> FilterTypes:  # noqa: C901
     assert len(stmt.keys()) == 1, f"Too many keys in the filter statement: {stmt}"

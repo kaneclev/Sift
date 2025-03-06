@@ -1,10 +1,11 @@
 import os
 
-from typing import Dict, List
+from typing import Dict
 
 from file_operations.sift_file import ScriptTree, SiftFile
-from language.parsing.ast.ast_json_converter import SiftASTConverter
 from IR.read_tree import TreeReader
+from language.parsing.ast.ast_json_converter import SiftASTConverter
+
 
 ################################################
 # #! Main API For Parsing SiftScripts
@@ -69,17 +70,5 @@ class ScriptProcessor:
             self.to_ir()
 
     def to_ir(self):
-        TreeReader.ast_to_instructions(ast=self.ast)
+        print(TreeReader.to_ir(ast=self.ast))
 
-    def to_queue(self):
-        """
-        TODO: Concept issue. How do we represent intermediate instructions that our scraper can understand?
-            - Particularly, how do we represent the *nested structure* of the filters?
-                - Should each ParsedNode have a required to_ir() method implementation? 
-                    - Like a sort of __str__ method? Or would that be overly complex? 
-                - Instead, is there some property of every parsednode that is consistent that
-                will let us write a method to generically apply a to_ir method to each node and 
-                actually get some piece of instruction (this is kind of the same as having a to_ir method on each)
-                    - but this might be the only safe, consistent way of doing this 
-        """
-        ...

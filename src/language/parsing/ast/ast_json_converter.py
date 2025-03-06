@@ -1,8 +1,10 @@
 
+import os
+
 from dataclasses import asdict
 
 import orjson
-import os
+
 from language.parsing.ast.script_tree import ScriptTree
 
 

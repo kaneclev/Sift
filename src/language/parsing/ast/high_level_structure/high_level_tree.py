@@ -3,6 +3,10 @@
 from dataclasses import dataclass, field
 from typing import Dict, List
 
+from language.parsing.ast.high_level_structure.high_level_grammar import (
+    HighLevelGrammar,
+)
+from language.parsing.ast.parsed_node_interface import ParsedNode
 from language.parsing.exceptions.external_exception import (
     MultipleTargetListDefinitionsError,
 )
@@ -10,8 +14,6 @@ from language.parsing.exceptions.internal_exception import (
     NoRawContentProvidedError,
     TransformerParseError,
 )
-from language.parsing.ast.high_level_structure.high_level_grammar import HighLevelGrammar
-from language.parsing.ast.parsed_node_interface import ParsedNode
 
 
 @dataclass

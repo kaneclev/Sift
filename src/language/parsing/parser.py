@@ -1,5 +1,5 @@
-from language.parsing.ast.script_tree import ScriptTree
 from language.parsing.ast.high_level_structure.high_level_tree import HighLevelTree
+from language.parsing.ast.script_tree import ScriptTree
 
 
 class Parser:

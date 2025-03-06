@@ -6,7 +6,7 @@ import undetected_chromedriver as uc
 
 from curl_cffi import requests
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium_stealth import stealth
 
@@ -135,7 +135,7 @@ class BrowserRequest:
         # Wait for page load (or a specific element) using Selenium's explicit wait.
         try:
             WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.TAG_NAME, "body"))
+                ec.presence_of_element_located((By.TAG_NAME, "body"))
             )
         except Exception as e:
             self.logger.error(f"Error waiting for page load: {e}")
