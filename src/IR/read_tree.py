@@ -15,6 +15,7 @@ class TreeReader:
         url_action_list_dict = TreeReader._action_blocks_to_actions(action_blocks=action_blocks, targets=ast.targets)
         instructions_object_list = TreeReader._actions_to_instructions(url_action_dict=url_action_list_dict)
         return IntermediateRepresentation(instructions_object_list)
+
     @staticmethod
     def _actions_to_instructions(url_action_dict: Dict[str, List[Action]]) -> List[Instruction]:
         instr_list: List[Instruction] = []
@@ -34,6 +35,6 @@ class TreeReader:
         action_block_order_map = {target: idx for idx, target in enumerate(targets)}
         return sorted(action_blocks, key=lambda block: action_block_order_map.get(block.target, float('inf')))
     @staticmethod
-    def to_ir(ast: ScriptTree):
+    def to_ir(ast: ScriptTree) -> IntermediateRepresentation:
         ir = TreeReader.ast_to_instructions(ast)
-        return ir.IR_STRING
+        return ir

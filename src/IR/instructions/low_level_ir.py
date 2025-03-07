@@ -31,7 +31,7 @@ class Operation(ABC):
 @dataclass
 class FilterConditional(Conditional):
     constraints: List[Union["FilterConditional", HTMLProperty]]
-    def __str__(self, indent: int = 0) -> str:
+    def to_ir(self, indent: int = 0) -> str:
         indent_str = "    " * indent  # 4 spaces per indent level
         if self.op == LogicalOperatorType.NOT:
             result = f"{indent_str}{self.op.value}\n"
@@ -92,7 +92,7 @@ class FilterIR(Operation):
             return HTMLProperty(htype=filter.filter_type, detail=filter.value)
 
     def __str__(self):
-        return f"Filter from {self.from_alias if self.from_alias else '<NA>'} to {self.to_alias} using: \n{str(self.compose_filters())}"
+        return f"Filter from {self.from_alias if self.from_alias else '<NA>'} to {self.to_alias} using: \n{str(self.condition.to_ir())}"
 
 
 
