@@ -1,31 +1,12 @@
-from abc import ABC
 from dataclasses import dataclass, field
-from enum import Enum, auto
 from typing import List, Union
 
 from IR.instructions.conditionals import Conditional
 from IR.instructions.html_properties import HTMLProperty
-from language.parsing.ast.actions.action.action import Action
+from IR.instructions.operations.operation import Operation
+from language.parsing.ast.actions.action.action import ActionType
 from language.parsing.ast.actions.action_plugins.filter.filter import Filter
 from language.parsing.ast.enums import LogicalOperatorType
-
-
-class Ops(Enum):
-    FILTER = auto()
-
-@dataclass
-class Operation(ABC):
-    op: Ops
-    @classmethod
-    def generate(cls, action: Action) -> "Operation":
-        op = decide_op(action)
-        if op == Ops.FILTER:
-            # We know action is a Filter, so cast or confirm:
-            if not isinstance(action, Filter):
-                raise TypeError("Expected a Filter action for a FILTER op.")
-            return FilterIR.generate(filter=action)
-        # if you have other Ops, handle them here
-        raise NotImplementedError(f"No IR class for type {action}")
 
 
 @dataclass
@@ -79,7 +60,7 @@ class FilterIR(Operation):
         from_alias = filter.metadata["from_alias"]
         to_alias = filter.metadata["assignment"].replace(';', "")
 
-        return cls(op=Ops.FILTER, condition=condition, to_alias=to_alias, from_alias=from_alias)
+        return cls(condition=condition, to_alias=to_alias, from_alias=from_alias)
     @staticmethod
     def compose_filters(filter: Filter) -> Union[FilterConditional, HTMLProperty]:
         if filter.operator:
@@ -95,7 +76,4 @@ class FilterIR(Operation):
         return f"Filter from {self.from_alias if self.from_alias else '<NA>'} to {self.to_alias} using: \n{str(self.condition.to_ir())}"
 
 
-
-def decide_op(to_decide: Action) -> Ops:
-    if to_decide.action_type.plugin_name == "filter":
-        return Ops.FILTER
+Operation.register_op(action_type=ActionType("filter"), factory=FilterIR.generate)

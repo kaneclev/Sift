@@ -1,6 +1,7 @@
 from typing import Dict, List
 
-from IR.instruction import Instruction, IntermediateRepresentation
+from IR.instructions.instruction import Instruction
+from IR.ir_base import IntermediateRepresentation
 from language.parsing.ast.actions.action.action import Action
 from language.parsing.ast.script_tree import ScriptTree
 

@@ -3,7 +3,8 @@ import os
 from typing import Dict
 
 from file_operations.sift_file import ScriptTree, SiftFile
-from IR.read_tree import IntermediateRepresentation, TreeReader
+from IR.ir_base import IntermediateRepresentation
+from IR.read_tree import TreeReader
 from language.parsing.ast.ast_json_converter import SiftASTConverter
 
 
