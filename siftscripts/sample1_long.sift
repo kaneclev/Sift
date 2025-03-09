@@ -49,7 +49,7 @@ eBay: {
     extract where tag "a" and attribute "class": "seller-profile" -> ebay_seller_profiles;
 
     // Extract all image URLs for `ebay_items`
-    extract from ebay_items where attribute "src" -> ebay_item_images;
+    extract from ebay_items where attribute "src": any -> ebay_item_images;
 }
 
 // Action block for YouTube

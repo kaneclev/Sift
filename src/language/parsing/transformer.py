@@ -2,7 +2,7 @@ import logging
 
 from typing import Dict, List, Union
 
-from lark import Lark, Token, Transformer, logger
+from lark import Lark, Token, Transformer, exceptions, logger
 from lark.tree import Meta
 
 from language.grammar_container import GrammarContainer
@@ -112,9 +112,11 @@ class GrammarHandler:
         """
         try:
             self.parsed_content = self.lark_grammar.parse(self.content)
-        except Exception as e:
-            raise GrammarHandlerError(method="parse", reason=str(e)) from e
-
+        except exceptions.UnexpectedToken as e:
+            #
+            if hasattr(e, "get_context"):
+                context = e.get_context(self.content)
+            raise GrammarHandlerError(method="parse", reason=context) from e
     def transform(self) -> Dict:
         """ Transforms the content parsed by Lark into a dictionary format.
 

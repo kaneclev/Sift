@@ -343,21 +343,25 @@ class Filter(Action):
             if identified_filter_type == FilterTypes.ATTRIBUTE:
                 result = Filter._process_attribute_filter_type(value)
             if identified_filter_type == FilterTypes.TEXT:
-                result = Filter._process_tag_filter_type(value)
+                result = Filter._process_text_filter_type(value)
             if identified_filter_type == FilterTypes.TAG:
-                return value
+                return Filter._process_tag_filter_type(value)
+            if result is None:
+                raise ValueError(f"The filter value could not be morphed by any processor. Value: {value}")
             return result
     @staticmethod
     def _process_tag_filter_type(value) -> List[str]:
         if isinstance(value[0], dict):
-            if (options := value.get('options', None)) is None and (wildcard := value.get('wildcard_value', None)) is None:
+            if (options := value[0].get('options', None)) is None and (wildcard := value[0].get('wildcard_value', None)) is None:
                 raise KeyError(f'Given a dict in the "tag" filter, expected it to have key "options" or "wildcard_value", but got: {value}')
             if options:
                 return options
             if wildcard:
                 return []
+        else:
+            return value
     @staticmethod
-    def _process_tag_filter_type(value) -> Dict[str, Union[list, str, dict]]:
+    def _process_text_filter_type(value) -> Dict[str, Union[list, str, dict]]:
         result = []
         if isinstance(value, list):
             for text_item in value:
@@ -377,6 +381,16 @@ class Filter(Action):
                         raise TypeError(f"Expected the text filter dict to have the key, contains_text, but here it is instead: {text_item}")
         else:
             raise TypeError(f'Expected the text filter to be of type list, instead found it to be of type: {value}')
+        for k in result:
+            if isinstance(k, dict):
+                if k.get('options', None) is not None:
+                    print(f'Here: {result}, value: {value}')
+                    exit()
+        if isinstance(result[0], dict):
+            if result[0].get('contains', None) is None:
+                print(f'Here: {result}, value: {value}')
+                exit()
+
         return result
 
     @staticmethod

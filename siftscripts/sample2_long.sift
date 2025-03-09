@@ -55,7 +55,7 @@ eBay: {
     extract where tag "a" and attribute "class": "seller-profile" -> ebay_seller_profiles;
     
     // Extract image URLs from items (even if no value is provided after attribute "src")
-    extract from ebay_items where attribute "src" -> ebay_images;
+    extract from ebay_items where attribute "src": any -> ebay_images;
     
     // Additionally, extract items that are not marked as sold, by checking status attributes,
     // and also require that a span tag is present (using a grouped operator).

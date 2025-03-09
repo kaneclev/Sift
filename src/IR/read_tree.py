@@ -23,7 +23,6 @@ class TreeReader:
         for url, action_list in url_action_dict.items():
             new_instruction = Instruction.generate(url=url, action_list=action_list)
             instr_list.append(new_instruction)
-        exit()
         return instr_list
 
     @staticmethod
