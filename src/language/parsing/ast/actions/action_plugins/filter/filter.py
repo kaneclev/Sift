@@ -37,6 +37,7 @@ Example usage:
 import re
 
 from dataclasses import dataclass  # noqa: N999
+from enum import Enum, auto
 from typing import Dict, Iterator, List, Optional, Union
 
 from language.parsing.ast.actions.action.action import Action
@@ -158,8 +159,10 @@ class Filter(Action):
             Exception: If the `FilterGrammar` fails to parse `raw_content`.
         """
         metadata = cls.get_metadata(raw_content)
+
         handler: FilterGrammar = FilterGrammar(metadata["raw_filter"])
         content_as_dict: dict = handler.analyze()
+
         return (content_as_dict, metadata)
 
     @classmethod
@@ -181,7 +184,6 @@ class Filter(Action):
             ValueError: If the filter structure is unrecognized.
         """
         parsed_data, metadata = cls._parse(raw_content)
-
         filter_obj = cls._build_filter(parsed_data)
         filter_obj.metadata = metadata
         return filter_obj
@@ -310,7 +312,7 @@ class Filter(Action):
                 identified_filter_type = match_filter_type(filter_type_info)
                 processed_value = Filter._process_atomic_value(identified_filter_type, value)
                 if identified_filter_type == FilterTypes.UNKNOWN:
-                    print(f'Whoops! Unknown filter type: {data}')
+                    raise TypeError(f'Unknown filter type for data: {key}: {value}')
                 return Filter(filter_type=identified_filter_type, value=processed_value)
         raise ValueError(f"Unrecognized atomic filter structure: {data}")
 
@@ -345,9 +347,17 @@ class Filter(Action):
             if identified_filter_type == FilterTypes.TAG:
                 return value
             return result
-
     @staticmethod
-    def _process_tag_filter_type(value) -> Dict:
+    def _process_tag_filter_type(value) -> List[str]:
+        if isinstance(value[0], dict):
+            if (options := value.get('options', None)) is None and (wildcard := value.get('wildcard_value', None)) is None:
+                raise KeyError(f'Given a dict in the "tag" filter, expected it to have key "options" or "wildcard_value", but got: {value}')
+            if options:
+                return options
+            if wildcard:
+                return []
+    @staticmethod
+    def _process_tag_filter_type(value) -> Dict[str, Union[list, str, dict]]:
         result = []
         if isinstance(value, list):
             for text_item in value:
@@ -357,7 +367,12 @@ class Filter(Action):
                     contains_map = {"contains": []}
                     if (contains_text_item_list := text_item.get("contains_text")) is not None:
                         contains_map["contains"] = contains_text_item_list[0]
+                        if isinstance(contains_map["contains"], dict):
+                            if (contains_options := contains_map["contains"].get("options", None)) is not None:
+                                result.extend(contains_options)
                         result.append(contains_map)
+                    elif (text_options := text_item.get("options")) is not None:
+                        result.extend(text_options)
                     else:
                         raise TypeError(f"Expected the text filter dict to have the key, contains_text, but here it is instead: {text_item}")
         else:
@@ -365,47 +380,40 @@ class Filter(Action):
         return result
 
     @staticmethod
-    def _process_attribute_filter_type(value) -> Dict:
-        """
-        POSSIBLE CASES
-            - 1.) [str, str] --> just a key-value pair.
-            -   1.b) [str, dict(contains)] --> this and 1 are always 2-value lists
-            - 2.) [{pair: []}, {pair: []}...] --> list of key-value pairs
-            - 3.) {'pair': ['"data-discount"', {'contains_attribute': ['"special"']}]} --> list of key-value pairs with the
-        """
+    def _process_attribute_filter_type(value) -> Dict[str, Union[list, str, dict]]:
         result = {}
-        for element in value:
-            if isinstance(element, str):
-                if len(value) == 1:
-                    result[element] = LogicalOperatorType.ANY
-                    break
-                # then this is a str-str case or a str-dict(contains) case
-                if isinstance(value[1], dict):
-                    # then it is a str-dict(contains) case.
-                    result[value[0]] = value[1].get("contains_attribute", None)
-                    if result[value[0]] is None: # then idk wtf this is
-                        print(f"Couldn't parse attribute filter statement: {value}; (expected a contains item)")
+        class AttributeValueOptions(Enum):
+            DNE = auto()
+
+        for pair_dict in value:
+            relevant_pair = pair_dict['pair']
+            attr_filter_val: Union[str, dict] = relevant_pair[1]
+            if not isinstance(relevant_pair, list):
+                raise TypeError(f'Expected the value of the attribute "pair" key to be a list, but instead got: {relevant_pair}')
+            attr_filter_key: str = relevant_pair[0]
+            if isinstance(attr_filter_val, dict):
+                options =  attr_filter_val.get('options', AttributeValueOptions.DNE)
+                contains_options = attr_filter_val.get('contains_attribute', AttributeValueOptions.DNE)
+                wildcard = attr_filter_val.get('wildcard_value', AttributeValueOptions.DNE)
+                if options is AttributeValueOptions.DNE and contains_options is AttributeValueOptions.DNE and wildcard is AttributeValueOptions.DNE:
+                    raise ValueError(f'Unexpected value for the value for the attribute filter: {value}. Expected the key to be "contains_attribute" or "options", instead, got: {attr_filter_val}')
+                if options is not AttributeValueOptions.DNE:
+                    result[attr_filter_key] = options
+                if contains_options is not AttributeValueOptions.DNE:
+                    result[attr_filter_key] = {}
+                    if isinstance(contains_options[0], dict):
+                        result[attr_filter_key]["contains"] = contains_options[0]["options"]
                     else:
-                        result[value[0]] = {"contains": result[value[0]][0]} # since the contains attribute will have a single string in the list
-                else: # otherwise its just a str-str
-                    result[value[0]] = value[1]
-                break
-            if isinstance(element, dict):
-                # otherwise, we are dealing with a list of 'pairs'
-                if (pair_list := element.get("pair", None)) is not None:
-                    if isinstance(pair_list[1], dict):
-                        # then its a contains-attribute
-                        result[pair_list[0]] = pair_list[1].get("contains_attribute", None)
-                        if result[pair_list[0]] is None: # then idk wtf this is
-                            print(f"Couldn't parse attribute filter statement: {value}; (expected a contains item in {element})")
-                        else:
-                            contains_item = result[pair_list[0]][0]
-                            result[pair_list[0]] = {"contains": contains_item} # since the contains attribute will have a single string in the list
-                    else:
-                        # otherwise its just a {pair: [str, str]}
-                        result[pair_list[0]] = pair_list[1]
-                else:
-                    print(f"Couldn't parse attribute filter statement: {value} (expected this to be a pair dict list)")
+                        result[attr_filter_key]["contains"] = contains_options
+                if wildcard is not AttributeValueOptions.DNE:
+                    result[attr_filter_key] = []
+                if not result:
+                    print(f'attr val: {attr_filter_val}, pair: {relevant_pair}')
+                    exit()
+            elif isinstance(attr_filter_val, str):
+                result[attr_filter_key] = attr_filter_val
+            else:
+                raise TypeError(f'Expected the value for key {attr_filter_key} in attribute statement {value} to be a string or a dict, instead got {attr_filter_val}')
         return result
 
     @staticmethod
