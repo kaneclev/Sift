@@ -1,5 +1,7 @@
-from typing import Any, Dict
 import io
+
+from typing import Any, Dict
+
 import curl_cffi
 
 from scraping.sift_requests.content import SiteContent
@@ -10,7 +12,7 @@ from scraping.sift_requests.properties import Headers, UserAgents
 class CurlCffiRequest(Getter):
     settings = {
         "timeout": 10,
-        "verbose": False
+        "verbose": True
     }
     def __init__(self, url: str, settings: Dict[str, Any] = None):
         self.settings = settings or CurlCffiRequest.settings
