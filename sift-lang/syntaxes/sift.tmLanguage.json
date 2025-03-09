@@ -3,7 +3,7 @@
     "patterns": [
       {
         "name": "keyword.control.sift",
-        "match": "\\b(extract|from|where|or|not|and|text|contains|tag|attribute|targets)\\b"
+        "match": "\\b(extract|from|where|or|not|and|text|contains|tag|attribute|targets|any)\\b"
       },
       {
         "name": "comment.line.double-slash.sift",
