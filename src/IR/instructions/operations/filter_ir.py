@@ -74,6 +74,7 @@ class FilterIR(Operation):
 
     def __str__(self):
         return f"Filter from {self.from_alias if self.from_alias else '<NA>'} to {self.to_alias} using: \n{str(self.condition.to_ir())}"
-
+    def __repr__(self):
+        return f"FilterIR (from: {self.from_alias or '<NA>'}, to {self.to_alias}, cond: {self.condition})"
 
 Operation.register_op(action_type=ActionType("filter"), factory=FilterIR.generate)

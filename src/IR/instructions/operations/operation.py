@@ -10,3 +10,4 @@ class Operation:
     @staticmethod
     def register_op(action_type: ActionType, factory: Callable):
         register(rtype=RegistryType.OP, item=factory, key=action_type)
+    

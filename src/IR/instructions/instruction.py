@@ -18,6 +18,7 @@ class Instruction:
         for action in action_list:
             generator = lookup(rtype=RegistryType.OP, key=action.action_type)
             new_op = generator(action)
+            print(f'Action: {action}\nAssociated Op: {new_op}\n')
             new_operation_list.append(new_op)
         return Instruction(url=url, operations=new_operation_list)
 
@@ -30,5 +31,5 @@ class Instruction:
         ]
         ir.extend([f"{str(op)}" for op in self.operations])
         return "\n".join(ir)
-
-
+    def __repr__(self):
+        return str([repr(op) for op in self.operations])
