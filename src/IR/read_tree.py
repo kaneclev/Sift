@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from IR.instructions.instruction import Instruction
 from IR.ir_base import IntermediateRepresentation
@@ -20,21 +20,23 @@ class TreeReader:
     @staticmethod
     def _actions_to_instructions(url_action_dict: Dict[str, List[Action]]) -> List[Instruction]:
         instr_list: List[Instruction] = []
-        for url, action_list in url_action_dict.items():
-            new_instruction = Instruction.generate(url=url, action_list=action_list)
+        for url, action_tuple in url_action_dict.items():
+            new_instruction = Instruction.generate(url=url, alias=action_tuple[1], action_list=action_tuple[0])
             instr_list.append(new_instruction)
         return instr_list
 
     @staticmethod
-    def _action_blocks_to_actions(action_blocks, targets) -> Dict[str, List[Action]]:
+    def _action_blocks_to_actions(action_blocks, targets) -> Dict[str, List[Tuple[Action, str]]]:
         first_abstraction_ir = {}
         for block in action_blocks:
-            first_abstraction_ir[targets[block.target]] = block.actions
+            first_abstraction_ir[targets[block.target]] = (block.actions, block.target)
         return first_abstraction_ir
+
     @staticmethod
     def _get_ordered_action_blocks(targets, action_blocks) -> List:
         action_block_order_map = {target: idx for idx, target in enumerate(targets)}
         return sorted(action_blocks, key=lambda block: action_block_order_map.get(block.target, float('inf')))
+
     @staticmethod
     def to_ir(ast: ScriptTree) -> IntermediateRepresentation:
         ir = TreeReader.ast_to_instructions(ast)

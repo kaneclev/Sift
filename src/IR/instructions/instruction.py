@@ -3,24 +3,24 @@ from typing import List
 
 import IR.instructions.operations as ops
 
-from language.parsing.ast.actions.action.action import Action, ActionType
+from language.parsing.ast.actions.action.action import Action
 from shared.registry import RegistryType, lookup
 
 
 @dataclass
 class Instruction:
     url: str
+    alias: str
     operations: List[ops.operation.Operation]
 
     @classmethod
-    def generate(cls, url: str, action_list: List[Action]):
+    def generate(cls, url: str, alias: str, action_list: List[Action]):
         new_operation_list: List[ops.operation.Operation] = []
         for action in action_list:
             generator = lookup(rtype=RegistryType.OP, key=action.action_type)
             new_op = generator(action)
-            print(f'Action: {action}\nAssociated Op: {new_op}\n')
             new_operation_list.append(new_op)
-        return Instruction(url=url, operations=new_operation_list)
+        return Instruction(url=url, alias=alias, operations=new_operation_list)
 
     def __iter__(self):
         return iter(self.operations)

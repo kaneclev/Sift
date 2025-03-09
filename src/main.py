@@ -1,16 +1,17 @@
 from prep import prep  # noqa: F401, I001
 from api.script_processor import ScriptProcessor  # noqa: F401
+from api.scrape_api import ScrapeDelegator
 import time
 
 def main():
     t = time.time()
     proc = ScriptProcessor(
         sift_file="../siftscripts/sample1_long.sift")
-    proc.to_ir()
+    ir = proc.to_ir()
+    sd = ScrapeDelegator(ir_obj=ir)
+    res = sd.scrape(alias="Wikipedia")
     t1 = time.time()
     print(f"Execution time: {t1 - t} seconds")
 
-
-    #print(ir)
 if __name__ == "__main__":
     main()

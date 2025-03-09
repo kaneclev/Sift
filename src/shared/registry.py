@@ -6,6 +6,7 @@ from typing import Dict, Generic, Hashable, List, TypeVar, Union
 class RegistryType(Enum):
     OP = auto()
     ACTION = auto()
+    TARGET = auto()
 
 registries: Dict[RegistryType, "Registry"] = {}
 RegisteredItem = TypeVar("RegisteredItem")
