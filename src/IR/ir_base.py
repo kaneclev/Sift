@@ -6,6 +6,7 @@ from IR.instructions.instruction import Instruction
 
 @dataclass
 class IntermediateRepresentation:
+    file_name: str
     instruction_list: List[Instruction] = field(default_factory=list)
     def __str__(self):
         return "\n".join([i.to_ir() for i in self.instruction_list])

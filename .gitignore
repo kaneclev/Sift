@@ -13,5 +13,6 @@ wheels/
 .DS_Store
 
 json_conversions
+IRConversions
 cookies
 logs

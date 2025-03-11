@@ -7,9 +7,7 @@ def main():
     t = time.time()
     proc = ScriptProcessor(
         sift_file="../siftscripts/sample1_long.sift")
-    ir = proc.to_ir()
-    sd = ScrapeDelegator(ir_obj=ir)
-    res = sd.scrape(alias="Wikipedia")
+    proc.to_ir()
     t1 = time.time()
     print(f"Execution time: {t1 - t} seconds")
 

@@ -4,6 +4,7 @@ from typing import Dict
 
 from file_operations.sift_file import ScriptTree, SiftFile
 from IR.ir_base import IntermediateRepresentation
+from IR.ir_format_conversion import IRConverter
 from IR.read_tree import TreeReader
 from language.parsing.ast.ast_json_converter import SiftASTConverter
 
@@ -19,15 +20,14 @@ class ScriptProcessor:
         self.sift_file_instance: SiftFile = None
         self.options: Dict[str, bool] = None
         self.ast: ScriptTree = None
-        self.json = None
 
 
         self.sift_file_path = sift_file
         self.sift_file_basename = os.path.basename(sift_file)
         self.options = {
             "show_ast": False,
-            "show_json": False,
-            "save_json": False,
+            "show_json_ast": False,
+            "save_json_ast": False,
         }
         self.options.update(options)
         self.sift_file_instance = self._generate_siftfile()
@@ -56,17 +56,29 @@ class ScriptProcessor:
         return self.sift_file_instance.parse_file()
 
     def _option_handler(self):
-        save_json = self.options.get('save_json')
-        converter = SiftASTConverter(self.ast, self.sift_file_basename)
-        # NOTE: We always convert to json for queue reasons regardless of if the options suggest we save, show or not.
-        self.json = converter.to_json(should_store=save_json)
-        if not self.json:
-            raise ValueError(f'There was an issue converting the AST to JSON representation: (self.json = {self.json})')
-        if self.options.get('show_ast'):
-            self.sift_file_instance.show_tree()
-        if self.options.get('show_json'):
-            print(f'JSON representation: \n {self.json}')
+        json_ast = None
+        make_json_ast = self.options.get('show_json_ast') or self.options.get('save_json_ast')
+
+        if make_json_ast:
+            json_conversion_options = {}
+            if self.options.get('save_json_ast', None) is not None:
+                json_conversion_options[SiftASTConverter.ConversionOptions.SAVE_FILE] = True
+            json_ast = SiftASTConverter.to_json(ast=self.ast, file_name=self.sift_file_basename, options=json_conversion_options)
+
+        for opt, val in self.options.items():
+            if val:
+                match opt:
+                    case 'show_ast':
+                        self.sift_file_instance.show_tree()
+                    case 'show_json_ast':
+                        print(json_ast)
+                    case 'save_json_ast':
+                        pass
+                    case _:
+                        raise ValueError(f"Unknown option: {opt}")
 
     def to_ir(self) -> IntermediateRepresentation:
-        return TreeReader.to_ir(self.ast)
+        ir_tree = TreeReader.to_ir(self.ast, self.sift_file_basename)
+        IRConverter.to_json(ir_obj=ir_tree)
+        return ir_tree
 
