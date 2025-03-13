@@ -166,3 +166,8 @@ class NoDefinitionFoundError(BaseInternalActionError):
         The given content: {unclaimed_statement} was not identified as belonging to any Action subclass.
         """
         super().__init__(method="generate", reason=reason)
+
+class IncorrectContentForPluginError(BaseInternalActionError):
+    def __init__(self, plugin: str):
+        reason = f"The content passed to generate() is unexpected for the {plugin} plugin."
+        super().__init__(method="generate", reason=reason)

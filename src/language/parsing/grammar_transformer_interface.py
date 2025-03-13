@@ -28,7 +28,6 @@ class SyntaxProcessor:
         self.content = content
         self.handler = GrammarHandler(grammar, self.start, content)
         pass
-
     def analyze(self) -> Dict:
         """ The API for parsing raw script content into an intermediate object.
 

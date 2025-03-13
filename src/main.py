@@ -2,7 +2,6 @@ from prep import prep  # noqa: F401, I001
 from api.script_processor import ScriptProcessor  # noqa: F401
 from api.scrape_api import ScrapeDelegator
 import time
-
 def main():
     t = time.time()
     proc = ScriptProcessor(

@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass, field  # noqa: N999
-from typing import ClassVar, Dict
+from typing import Dict
 
 import language.parsing.exceptions.internal_exception as act_except
 
@@ -15,47 +15,13 @@ class Action(ParsedNode):
     This class handles the registration and construction of all sub-action classes.
     Use the generate method with any string to get an instance of the Action class the string corresponds to.
     """
-    _child_registry: ClassVar[list["Action"]] = []
 
     action_type: ActionType
     metadata: Dict[str, str] = field(default_factory=dict)
 
-    def __init_subclass__(cls, **kwargs):
-        """
-        Initialize a subclass of Action and register it in the child registry.
-
-        Keyword arguments:
-        kwargs -- Additional keyword arguments.
-        """
-        super().__init_subclass__(**kwargs)
-        Action._child_registry.append(cls)
-
     @classmethod
-    def generate(cls, content_to_classify: str) -> "Action":
-        """
-        Generate an Action instance based on the content to classify.
-
-        This method iterates through all registered subclasses of Action and uses their _classify method to determine
-        which subclass the content belongs to. If more than one subclass claims the content, a MultipleActionDefinitionsError
-        is raised. If no subclass claims the content, a NoDefinitionFoundError is raised.
-
-        Keyword arguments:
-        content_to_classify -- The content to classify and generate an Action instance for.
-
-        Returns:
-        An instance of the appropriate Action subclass.
-        """
-        claimed_owners: list["Action"] = []
-        for action_subclass in Action._child_registry:
-            if action_subclass._classify(content_to_classify) is True:
-                claimed_owners.append(action_subclass)
-        if len(claimed_owners) > 1:
-            raise act_except.MultipleActionDefinitionsError(claimed_owners)
-        elif len(claimed_owners) == 0:
-            raise act_except.NoDefinitionFoundError(content_to_classify)
-        else:
-            generated_obj = claimed_owners[0].generate(content_to_classify)
-            return generated_obj
+    def unfit_content(cls):
+        raise act_except.IncorrectContentForPluginError(plugin=cls.__class__.__name__)
 
     def __str__(self):
         """

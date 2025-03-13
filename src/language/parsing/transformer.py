@@ -2,6 +2,8 @@ import logging
 
 from typing import Dict, List, Union
 
+import lark_cython
+
 from lark import Lark, Token, Transformer, exceptions, logger
 from lark.tree import Meta
 
@@ -34,7 +36,7 @@ class GenericGrammar(Lark):
             start (str): The starting rule as a string to be passed to Lark.
             content (str): The Sift script content that Lark will ultimately parse.
         """
-        super().__init__(grammar, start=start, parser='lalr', cache=True)
+        super().__init__(grammar, start=start, parser='lalr', cache=True, _plugins=lark_cython.plugins)
         self.grammar = grammar
         self.content = content
         pass
@@ -68,7 +70,7 @@ class GenericTransformer(Transformer):
             data = data.value
         transformed_children = []
         for child in children:
-            if isinstance(child, Token):
+            if isinstance(child, lark_cython.Token):
                 transformed_children.append(child.value)
             else:
                 transformed_children.append(child)

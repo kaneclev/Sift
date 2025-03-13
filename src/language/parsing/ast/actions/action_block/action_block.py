@@ -1,11 +1,15 @@
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Callable, Dict, List
+
+import language.parsing.exceptions.internal_exception as act_except
 
 from language.parsing.ast.actions.action.action import Action
+from language.parsing.ast.actions.action.action_types import ActionType
 from language.parsing.ast.actions.action_block.action_block_grammar import (
     ActionBlockGrammar,
 )
 from language.parsing.ast.parsed_node_interface import ParsedNode
+from shared.registry import RegistryType, get_registry
 
 
 @dataclass
@@ -22,10 +26,16 @@ class ActionBlock(ParsedNode):
         target, raw_action = next(iter(target_action_map.items()))
         action_block_as_list = ActionBlockGrammar(raw_action).analyze()
         action_list: List[Action] = []
+        generators: Dict[ActionType, Callable] = get_registry(rtype=RegistryType.ACTION)
         for action in action_block_as_list:
-            action_list.append(Action.generate(content_to_classify=action))
+            for _, generator in generators.items():
+                try:
+                    action_list.append(generator(action))
+                except act_except.IncorrectContentForPluginError:
+                    continue
         return cls(target=target, actions=action_list)
-
+    def classify_actions(self):
+        ...
     def validate(self) -> bool:
         # ! Interface Implementation
         #TODO

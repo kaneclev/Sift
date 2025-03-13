@@ -81,7 +81,6 @@ class Filter(Action):
     filter_type: Optional[FilterTypes] = None
     value: Optional[Union[str, List[str], Dict[str, str]]] = None
     operands: Optional[List["Filter"]] = None
-
     def __init__(self, operator=None, filter_type=None, value=None, operands=None):
         """
         Initializes a new instance of `Filter`.
@@ -121,8 +120,8 @@ class Filter(Action):
             for child in root.operands:
                 yield from cls.traverse(child)
 
-    @classmethod
-    def _classify(cls, raw_content: str) -> bool:
+    @staticmethod
+    def _classify(raw_content: str) -> Dict:
         """
         Determines if the given `raw_content` string represents a Filter.
 
@@ -136,12 +135,12 @@ class Filter(Action):
         Returns:
             bool: True if `raw_content` can be parsed as a Filter, False otherwise.
         """
-        cls._parse(raw_content)
-        return True
-
+        if (metadata := Filter.get_metadata(raw_content=raw_content)) is None:
+            Filter.unfit_content()
+        return metadata
 
     @classmethod
-    def _parse(cls, raw_content: str) -> tuple[Dict, Dict]:
+    def _parse(cls, metadata: Dict) -> Dict:
         """
         Parses the `raw_content` string using `FilterGrammar` to produce a dictionary
         representation of the filter.
@@ -158,12 +157,11 @@ class Filter(Action):
         Raises:
             Exception: If the `FilterGrammar` fails to parse `raw_content`.
         """
-        metadata = cls.get_metadata(raw_content)
 
         handler: FilterGrammar = FilterGrammar(metadata["raw_filter"])
         content_as_dict: dict = handler.analyze()
 
-        return (content_as_dict, metadata)
+        return content_as_dict
 
     @classmethod
     def generate(cls, raw_content: str) -> "Filter":
@@ -183,7 +181,8 @@ class Filter(Action):
         Raises:
             ValueError: If the filter structure is unrecognized.
         """
-        parsed_data, metadata = cls._parse(raw_content)
+        metadata = Filter._classify(raw_content=raw_content)
+        parsed_data = cls._parse(metadata=metadata)
         filter_obj = cls._build_filter(parsed_data)
         filter_obj.metadata = metadata
         return filter_obj
@@ -215,7 +214,6 @@ class Filter(Action):
         if cls._is_atomic_node(data):
             return cls._build_atomic(data)
         raise ValueError(f"Unrecognized filter structure: {data}")
-
     @classmethod
     def _build_group(cls, data: dict) -> "Filter":
         """
@@ -273,7 +271,6 @@ class Filter(Action):
                 operands = [cls._build_filter(child) for child in value]
                 return Filter(operator=match_logical_op_type(operator), operands=operands)
         raise ValueError(f"Operator node not found in data: {data}")
-
     @staticmethod
     def _is_atomic_node(data: dict) -> bool:
         """
@@ -288,7 +285,6 @@ class Filter(Action):
             bool: True if the node is an atomic filter node; False otherwise.
         """
         return any(key in ("tag", "attribute", "text") for key in data)
-
     @staticmethod
     def _build_atomic(data: dict) -> "Filter":
         """
@@ -315,7 +311,6 @@ class Filter(Action):
                     raise TypeError(f'Unknown filter type for data: {key}: {value}')
                 return Filter(filter_type=identified_filter_type, value=processed_value)
         raise ValueError(f"Unrecognized atomic filter structure: {data}")
-
     @staticmethod
     def _process_atomic_value(identified_filter_type, value) -> Union[str, List]:
         """
@@ -349,6 +344,7 @@ class Filter(Action):
             if result is None:
                 raise ValueError(f"The filter value could not be morphed by any processor. Value: {value}")
             return result
+
     @staticmethod
     def _process_tag_filter_type(value) -> List[str]:
         if isinstance(value[0], dict):
@@ -431,7 +427,7 @@ class Filter(Action):
         return result
 
     @staticmethod
-    def get_metadata(raw_content: str) -> Dict:
+    def get_metadata(raw_content: str) -> Union[Dict, None]:
         """
         Analyzes a DSL statement and extracts three main pieces of metadata:
 
@@ -495,7 +491,8 @@ class Filter(Action):
             assign: str = extract_where_statement.group(2)
             metadata["raw_filter"] = filt
             metadata["assignment"] = assign
-
+        if not metadata:
+            return None
         return metadata
 
     def validate(self):

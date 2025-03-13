@@ -16,3 +16,5 @@ json_conversions
 IRConversions
 cookies
 logs
+.prof
+.lprof

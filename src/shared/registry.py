@@ -6,8 +6,6 @@ from typing import Dict, Generic, Hashable, List, TypeVar, Union
 class RegistryType(Enum):
     OP = auto()
     ACTION = auto()
-    TARGET = auto()
-
 registries: Dict[RegistryType, "Registry"] = {}
 RegisteredItem = TypeVar("RegisteredItem")
 RCollection = Union[List[RegisteredItem], Dict[Hashable, RegisteredItem]]
@@ -17,6 +15,10 @@ class Registry(Generic[RegisteredItem]):
     rtype: RegistryType
     registry: RCollection
 
+def get_registry(rtype: RegistryType) -> Union[RCollection, None]:
+    if rtype not in registries:
+        return None
+    return registries[rtype].registry
 
 def register(rtype: RegistryType, item: RegisteredItem, key: Hashable = "") -> None:
     is_mapping = True if key else False
