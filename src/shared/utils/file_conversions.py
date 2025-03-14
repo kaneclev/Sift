@@ -5,9 +5,12 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import Any, Dict
 
+from IR.ir_base import IntermediateRepresentation
+
 
 class FileOpts(Enum):
     JSON = auto()
+    PICKLE = auto()
 
 def validate_save_dir(dir_to_validate: str):
     if not os.path.exists(dir_to_validate):
@@ -16,12 +19,16 @@ def validate_save_dir(dir_to_validate: str):
         raise ValueError(f"Expected the specified save path to be a directory, instead got: {dir_to_validate}")
 
 def replace_suffix(file_name: Path, file_type: FileOpts) -> str:
+    extension = file_name.suffix
+    posix_basename = file_name.as_posix()
+    converted_filename = posix_basename.removesuffix(extension)
+
     match file_type:
         case FileOpts.JSON:
-            extension = file_name.suffix
-            posix_basename = file_name.as_posix()
-            converted_filename = posix_basename.removesuffix(extension)
             converted_filename = converted_filename = converted_filename + ('.json')
+            return converted_filename
+        case FileOpts.PICKLE:
+            converted_filename = converted_filename = converted_filename + ('.pkl')
             return converted_filename
         case _:
             raise TypeError(f"The file type passed to replace_suffix was not recognized: {file_type}")
@@ -60,6 +67,11 @@ class FileConverter(ABC):
                 fullpath = os.path.join(posix_dirname, converted_filename)
                 with open(fullpath, "wb") as f:
                     f.write(object_to_save)
+            case FileOpts.PICKLE:
+                FileConverter._assert_type(object_to_assert=object_to_save, type_to_assert=FileOpts.PICKLE)
+                fullpath = os.path.join(posix_dirname, converted_filename)
+                with open(fullpath, "wb") as f:
+                    f.write(object_to_save)
             case _:
                 raise TypeError(f"Unsupported file type: {ftype}")
 
@@ -74,6 +86,9 @@ class FileConverter(ABC):
         match type_to_assert:
             case FileOpts.JSON:
                 if not isinstance(object_to_assert, bytes):
-                    raise TypeError(f"Expected a dict-like object for conversion to JSON. Recieved: {object_to_assert}")
+                    raise TypeError(f"Expected a bytes-like object for conversion to JSON. Recieved: {object_to_assert}")
+            case FileOpts.PICKLE:
+                if not isinstance(object_to_assert, bytes):
+                    raise TypeError(f"Expected a bytes-like object for conversion to Pickle. Recieved: {type(object_to_assert)}")
             case _:
                 raise TypeError(f"Type assertion called for FileConverter, but an unsupported type was passed: {type_to_assert}")

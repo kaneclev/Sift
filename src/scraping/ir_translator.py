@@ -9,6 +9,7 @@ class IRTranslator:
         self.ir = ir
         self.targ_handlers: List[TargetHandler] = self.translate_targets()
         pass
+    
     def translate_targets(self) -> List[TargetHandler]:
         targ_handlers: List[TargetHandler] = []
         for instr in self.ir:

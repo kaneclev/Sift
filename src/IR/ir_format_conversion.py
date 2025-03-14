@@ -1,3 +1,5 @@
+import pickle
+
 from dataclasses import asdict
 from enum import Enum
 from typing import Dict, Union
@@ -19,13 +21,19 @@ class IRConverter(FileConverter):
         }
 
     @staticmethod
-    def to_json(ir_obj: IntermediateRepresentation, options: Dict[ConversionOptions, Union[str, bool]] = None):
+    def to_json(ir_obj: IntermediateRepresentation, options: Dict[ConversionOptions, Union[str, bool]] = None) -> None:
         if not options:
             options = {}
         options = IRConverter.update_options(options_to_update=options, base_options=IRConverter().default_options)
         json_bytes = orjson.dumps(asdict(ir_obj))
         to_dir = IRConverter().get_opt(IRConverter.ConversionOptions.SAVE_LOCATION)
         IRConverter._save_as(save_to_dir=to_dir, raw_basename=ir_obj.file_name, ftype=FileOpts.JSON, object_to_save=json_bytes)
-        return orjson.loads(json_bytes)
-
-
+    @staticmethod
+    def to_pickle(ir_obj: IntermediateRepresentation, options: Dict[ConversionOptions, Union[str, bool]] = None) -> None:
+        if not options:
+            options = {}
+        options = IRConverter.update_options(options_to_update=options, base_options=IRConverter().default_options)
+        pkl_bytes = pickle.dumps(asdict(ir_obj))
+        to_dir = IRConverter().get_opt(IRConverter.ConversionOptions.SAVE_LOCATION)
+        IRConverter._save_as(save_to_dir=to_dir, raw_basename=ir_obj.file_name, ftype=FileOpts.PICKLE, object_to_save=pkl_bytes)
+        return pickle.loads(pkl_bytes)

@@ -26,12 +26,15 @@ class ScriptProcessor:
         self.sift_file_basename = os.path.basename(sift_file)
         self.options = {
             "show_ast": False,
+            "pickle": True,
+            "show_pkl": False,
             "show_json_ast": False,
             "save_json_ast": False,
         }
         self.options.update(options)
         self.sift_file_instance = self._generate_siftfile()
         self.ast = self._generate_ast()
+        self.ir_obj = self.to_ir()
         self._option_handler()
         pass
 
@@ -58,7 +61,10 @@ class ScriptProcessor:
     def _option_handler(self):
         json_ast = None
         make_json_ast = self.options.get('show_json_ast') or self.options.get('save_json_ast')
-
+        pkl_obj = None
+        make_pkl = self.options.get('pickle') or self.options.get('show_pickle')
+        if make_pkl:
+            pkl_obj = IRConverter.to_pickle(ir_obj=self.ir_obj)
         if make_json_ast:
             json_conversion_options = {}
             if self.options.get('save_json_ast', None) is not None:
@@ -70,15 +76,21 @@ class ScriptProcessor:
                 match opt:
                     case 'show_ast':
                         self.sift_file_instance.show_tree()
+                        pass
                     case 'show_json_ast':
                         print(json_ast)
+                        pass
                     case 'save_json_ast':
+                        pass
+                    case 'show_pickle':
+                        print(pkl_obj)
+                        pass
+                    case 'pickle':
                         pass
                     case _:
                         raise ValueError(f"Unknown option: {opt}")
 
     def to_ir(self) -> IntermediateRepresentation:
         ir_tree = TreeReader.to_ir(self.ast, self.sift_file_basename)
-        IRConverter.to_json(ir_obj=ir_tree)
         return ir_tree
 

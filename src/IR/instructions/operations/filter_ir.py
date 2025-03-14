@@ -52,6 +52,7 @@ class FilterIR(Operation):
     to_alias: str
     condition: FilterConditional
     from_alias: str = field(default_factory=str)
+    optype: str = field(default_factory=str)
     @classmethod
     def generate(cls, filter: Filter):
         condition = FilterIR.compose_filters(filter=filter)
@@ -59,8 +60,12 @@ class FilterIR(Operation):
             condition = FilterConditional(op=LogicalOperatorType.ANY, constraints=[condition])
         from_alias = filter.metadata["from_alias"]
         to_alias = filter.metadata["assignment"].replace(';', "")
-
         return cls(condition=condition, to_alias=to_alias, from_alias=from_alias)
+    def __post_init__(self):
+        if self.from_alias:
+            self.optype = "FilterOp_ExtractFromWhere"
+        else:
+            self.optype = "FilterOp_ExtractWhere"
     @staticmethod
     def compose_filters(filter: Filter) -> Union[FilterConditional, HTMLProperty]:
         if filter.operator:

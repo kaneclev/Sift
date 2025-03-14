@@ -31,4 +31,3 @@ class ScrapeDelegator:
             scrapers.append(Scraper(targ))
         return scrapers
 
-
