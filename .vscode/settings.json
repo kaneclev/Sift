@@ -51,6 +51,7 @@
           }
         },
       ]
-    }
+    },
+    "makefile.configureOnOpen": false
   }
   
