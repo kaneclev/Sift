@@ -2,6 +2,8 @@ import os
 
 from typing import Dict
 
+from api.ipc_management.ipc_manager import IPC
+from api.ipc_management.ipc_options import ComTypes, IPCOptions, MsgType, Recievers
 from file_operations.sift_file import ScriptTree, SiftFile
 from IR.ir_base import IntermediateRepresentation
 from IR.ir_format_conversion import IRConverter
@@ -14,6 +16,17 @@ from language.parsing.ast.ast_json_converter import SiftASTConverter
 ################################################
 class ScriptProcessor:
     def __init__(self, sift_file: str, **options):
+        """ API For parsing and generating IR for a sift script.
+
+        Args:
+            sift_file (str): The file to process.
+            pickle: Default True. Pickles the IR and sends it to Sift/IRConversions under the sift file filename.
+            show_ast: Default False. Shows the generated AST after parsing.
+            show_pkl: Default False. Unpickles the IR, shows the pickle-loaded object.
+            show_json_ast: Default False. Shows the JSON representation of the AST object.
+            save_json_ast: Default False. Saves the JSON conversion of the AST to the IRConversions folder under the sift file filename.
+            send (list[IPCOptions]): Defaults to [ IPCOptions(com_type=ComTypes.FILESYS, msg_type=MsgType.JSON, recipient=Recievers.REQUEST_MANAGER) ]
+        """
         # To allow for value-checking without 'no variable exists' issues.
         self.sift_file_path: str = None
         self.sift_file_basename: str = None
@@ -25,8 +38,11 @@ class ScriptProcessor:
         self.sift_file_path = sift_file
         self.sift_file_basename = os.path.basename(sift_file)
         self.options = {
-            "show_ast": False,
             "pickle": True,
+            "send": [
+                IPCOptions(com_type=ComTypes.FILESYS, msg_type=MsgType.JSON, recipient=Recievers.REQUEST_MANAGER)
+            ],
+            "show_ast": False,
             "show_pkl": False,
             "show_json_ast": False,
             "save_json_ast": False,
@@ -37,26 +53,6 @@ class ScriptProcessor:
         self.ir_obj = self.to_ir()
         self._option_handler()
         pass
-
-
-    def _generate_siftfile(self) -> SiftFile:
-        """ Private method for generating a SiftFile instance.
-        self.sift_file is the file path to the file we will be parsing.
-        The SiftFile class will immediately validate the SiftFile, so that we know its good to parse.'
-        Args
-        ----
-            None.
-        Returns
-        -------
-            SiftFile -- A new SiftFile instance.
-        """
-        return SiftFile(self.sift_file_path)
-
-    def _generate_ast(self) -> ScriptTree:
-        if not self.sift_file_instance:
-            raise ValueError(f'Expected a valid SiftFile instance to create the ScriptTree with. \
-                             Instead, it was {self.sift_file_instance}')
-        return self.sift_file_instance.parse_file()
 
     def _option_handler(self):
         json_ast = None
@@ -87,8 +83,31 @@ class ScriptProcessor:
                         pass
                     case 'pickle':
                         pass
+                    case 'send':
+                        IPC.send(ir_obj=self.ir_obj, options=val)
                     case _:
                         raise ValueError(f"Unknown option: {opt}")
+
+    def _generate_siftfile(self) -> SiftFile:
+        """ Private method for generating a SiftFile instance.
+        self.sift_file is the file path to the file we will be parsing.
+        The SiftFile class will immediately validate the SiftFile, so that we know its good to parse.'
+        Args
+        ----
+            None.
+        Returns
+        -------
+            SiftFile -- A new SiftFile instance.
+        """
+        return SiftFile(self.sift_file_path)
+
+    def _generate_ast(self) -> ScriptTree:
+        if not self.sift_file_instance:
+            raise ValueError(f'Expected a valid SiftFile instance to create the ScriptTree with. \
+                             Instead, it was {self.sift_file_instance}')
+        return self.sift_file_instance.parse_file()
+
+
 
     def to_ir(self) -> IntermediateRepresentation:
         ir_tree = TreeReader.to_ir(self.ast, self.sift_file_basename)

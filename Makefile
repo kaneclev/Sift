@@ -11,7 +11,7 @@ build: $(BUILD_DIR)
 	cd $(PROJ_DIR) && go build -o ../../../$(BUILD_DIR)/$(APP_NAME).exe
 
 run: build
-	$(BUILD_DIR)/$(APP_NAME).exe --finput urls.txt
+	$(BUILD_DIR)/$(APP_NAME).exe --finput to_consume
 
 clean:
 	rm -rf $(BUILD_DIR)

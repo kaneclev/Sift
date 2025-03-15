@@ -15,8 +15,12 @@ def prep():
     *Auto-called on import.*
     """
     PACKAGE_ROOT = Path(__file__).resolve().parent  # noqa: N806
-    os.chdir(PACKAGE_ROOT)  # Change working directory to src/
+    os.chdir(os.path.dirname(PACKAGE_ROOT))  # Change working directory to src/
     sys.path.insert(0, str(PACKAGE_ROOT))  # Ensure imports work
-    load_dotenv(".env")
     print(f"📂 Working directory set to: {os.getcwd()}")
+    loaded = load_dotenv(".env")
+    if loaded:
+        print("Loaded environment. ")
+    else:
+        raise FileNotFoundError("Could not find the .env file in the CWD...")
 prep()

@@ -3,14 +3,18 @@ import os
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Dict
-
-from IR.ir_base import IntermediateRepresentation
+from typing import Any, Dict, Union
 
 
 class FileOpts(Enum):
     JSON = auto()
     PICKLE = auto()
+
+def remove_suffix(file_name: Union[str, Path]) -> str:
+    if isinstance(file_name, str):
+        file_name = Path(file_name)
+    as_posix = file_name.as_posix()
+    return as_posix.removesuffix(file_name.suffix)
 
 def validate_save_dir(dir_to_validate: str):
     if not os.path.exists(dir_to_validate):
@@ -19,19 +23,19 @@ def validate_save_dir(dir_to_validate: str):
         raise ValueError(f"Expected the specified save path to be a directory, instead got: {dir_to_validate}")
 
 def replace_suffix(file_name: Path, file_type: FileOpts) -> str:
-    extension = file_name.suffix
-    posix_basename = file_name.as_posix()
-    converted_filename = posix_basename.removesuffix(extension)
+    converted_filename = remove_suffix(file_name=file_name)
 
     match file_type:
         case FileOpts.JSON:
-            converted_filename = converted_filename = converted_filename + ('.json')
+            converted_filename = converted_filename + ('.json')
             return converted_filename
         case FileOpts.PICKLE:
-            converted_filename = converted_filename = converted_filename + ('.pkl')
+            converted_filename = converted_filename + ('.pkl')
             return converted_filename
         case _:
             raise TypeError(f"The file type passed to replace_suffix was not recognized: {file_type}")
+
+
 
 
 
@@ -49,17 +53,19 @@ class FileConverter(ABC):
         return self.default_options.get(option, None)
 
     @staticmethod
-    def _save_as(save_to_dir: str, raw_basename: str, ftype: FileOpts, object_to_save):
+    def _save_as(save_to_dir: str, raw_basename: str, ftype: FileOpts, object_to_save, keep_suffix: bool = False):
 
         dir_obj = Path(save_to_dir)
 
         posix_dirname = dir_obj.as_posix()
 
-        basename_obj = Path(raw_basename)
-
         validate_save_dir(posix_dirname)
 
-        converted_filename = replace_suffix(file_name=basename_obj, file_type=ftype)
+        if not keep_suffix:
+            basename_obj = Path(raw_basename)
+            converted_filename = replace_suffix(file_name=basename_obj, file_type=ftype)
+        else:
+            converted_filename = raw_basename
 
         match ftype:
             case FileOpts.JSON:
