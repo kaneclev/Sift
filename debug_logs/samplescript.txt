@@ -1,7 +1,0 @@
-ScriptTree:
-  Targets:
-    - Google: www.google.com
-    - Amazon: www.amazon.com
-  Action Blocks:
-    1.       ActionBlock (target='Google'): 
-        1.           Filter(op  type HTMLPropertyType.TAG val ['"div"', '"li"'] meta {'from_alias': '', 'raw_filter': 'tag ["div", "li"]', 'assignment': 'div_li_tags;'})
