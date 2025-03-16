@@ -40,34 +40,25 @@ class ScriptProcessor:
 
         self.sift_file_path = sift_file
         self.sift_file_basename = os.path.basename(sift_file)
-        self.options = {
-            "pickle": {
-                  "save": False,
-                  "show": False
-            },
-            "json": {
-                  "save": False,
-                  "show": False
-            },
-            "ast": {
-                "save": False,
-                "show": False
-            },
-            "send": [
-                IPCOptions(com_type=ComTypes.FILESYS, msg_type=MsgType.JSON, recipient=Recievers.REQUEST_MANAGER)
-            ]
+        default_options = {
+            "pickle": {"save": False, "show": False},
+            "json": {"save": False, "show": False},
+            "ast": {"save": False, "show": False},
+            "send": [IPCOptions(com_type=ComTypes.FILESYS, msg_type=MsgType.JSON, recipient=Recievers.REQUEST_MANAGER)]
         }
-        self.options["pickle"].update(pickle)
-        self.options["json"].update(json)
-        self.options["ast"].update(ast)
-        self.options["send"] = send
+
+        self.options = {
+            "pickle": {**default_options["pickle"], **(pickle or {})},
+            "json": {**default_options["json"], **(json or {})},
+            "ast": {**default_options["ast"], **(ast or {})},
+            "send": send if send is not None else default_options["send"]
+        }
 
         self.script = self._generate_siftfile()
         self.ast = self._generate_ast()
         self.ir_obj = self.to_ir()
         self._option_handler()
         pass
-
     def _handle_ast_options(self, options: Dict):
         txt_ast = None
         save = options.get('save', False)
