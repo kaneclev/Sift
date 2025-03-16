@@ -117,14 +117,7 @@ class GrammarHandler:
         Raises:
             GrammarHandlerError: The exception raised by Lark at the time of parsing.
         """
-        try:
-            self.parsed_content = self.lark_grammar.parse(self.content, on_error=self.handle_unexpected_token)
-        except (exceptions.UnexpectedToken, exceptions.UnexpectedEOF) as e:
-            context = e.get_context(self.content)
-            context_map = {
-
-            }
-            raise SyntaxError(context=context) from None
+        self.parsed_content = self.lark_grammar.parse(self.content, on_error=self.handle_unexpected_token)
     def transform(self) -> Dict:
         """ Transforms the content parsed by Lark into a dictionary format.
 
