@@ -8,7 +8,10 @@ from lark import Lark, Token, Transformer, exceptions, logger
 from lark.tree import Meta
 
 from language.grammar_container import GrammarContainer
-from language.parsing.exceptions.internal_exception import GrammarHandlerError
+from language.parsing.exceptions.external_exception import SyntaxError
+
+
+
 
 # A logger used by Lark in reporting any information related to the content parsing
 logger.setLevel(level=logging.INFO)
@@ -42,6 +45,7 @@ class GenericGrammar(Lark):
         pass
 
 class GenericTransformer(Transformer):
+    ISSUES = {}
     """ A base class for interfacing with the Lark 'Transformer' class.
 
     *Note:* This class is not indended to be used outside of transformer.py
@@ -100,6 +104,7 @@ class GrammarHandler:
         """
         # Define the grammar and content to be parsed
         self.content = content
+        self.gram_container = grammar
         self.grammar = grammar.to_string()
         self.lark_grammar = GenericGrammar(self.grammar, start, content)
         self.parsed_content = None
@@ -113,12 +118,13 @@ class GrammarHandler:
             GrammarHandlerError: The exception raised by Lark at the time of parsing.
         """
         try:
-            self.parsed_content = self.lark_grammar.parse(self.content)
-        except exceptions.UnexpectedToken as e:
-            #
-            if hasattr(e, "get_context"):
-                context = e.get_context(self.content)
-            raise GrammarHandlerError(method="parse", reason=context) from e
+            self.parsed_content = self.lark_grammar.parse(self.content, on_error=self.handle_unexpected_token)
+        except (exceptions.UnexpectedToken, exceptions.UnexpectedEOF) as e:
+            context = e.get_context(self.content)
+            context_map = {
+
+            }
+            raise SyntaxError(context=context) from None
     def transform(self) -> Dict:
         """ Transforms the content parsed by Lark into a dictionary format.
 
@@ -131,3 +137,17 @@ class GrammarHandler:
         transformer = GenericTransformer()
         tree_in_dict_form = transformer.transform(self.parsed_content)
         return tree_in_dict_form
+
+    def handle_unexpected_token(self, e: exceptions.UnexpectedInput):
+        context = {}
+        context["offense"] = e.token.value
+        context["col"] = e.column
+        context["line"] = e.line
+        expected_rules = e.interactive_parser.choices()
+        if not expected_rules:
+            raise ValueError(f"There were no valid 'expected next tokens' when an UnexpectedInput error was raised for context: {context}")
+        context["expected"] = {}
+        for rule in expected_rules:
+            if (assoc_value := self.gram_container.get(rule)) is not None:
+                context["expected"][rule] = assoc_value
+        raise SyntaxError(context=context)

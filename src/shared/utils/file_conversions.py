@@ -9,6 +9,7 @@ from typing import Any, Dict, Union
 class FileOpts(Enum):
     JSON = auto()
     PICKLE = auto()
+    TXT = auto()
 
 def remove_suffix(file_name: Union[str, Path]) -> str:
     if isinstance(file_name, str):
@@ -28,12 +29,13 @@ def replace_suffix(file_name: Path, file_type: FileOpts) -> str:
     match file_type:
         case FileOpts.JSON:
             converted_filename = converted_filename + ('.json')
-            return converted_filename
         case FileOpts.PICKLE:
             converted_filename = converted_filename + ('.pkl')
-            return converted_filename
+        case FileOpts.TXT:
+            converted_filename = converted_filename + ('.txt')
         case _:
             raise TypeError(f"The file type passed to replace_suffix was not recognized: {file_type}")
+    return converted_filename
 
 
 
@@ -53,7 +55,7 @@ class FileConverter(ABC):
         return self.default_options.get(option, None)
 
     @staticmethod
-    def _save_as(save_to_dir: str, raw_basename: str, ftype: FileOpts, object_to_save, keep_suffix: bool = False):
+    def save_as(save_to_dir: str, raw_basename: str, ftype: FileOpts, object_to_save, keep_suffix: bool = False):
 
         dir_obj = Path(save_to_dir)
 
@@ -67,16 +69,18 @@ class FileConverter(ABC):
         else:
             converted_filename = raw_basename
 
+        FileConverter._assert_type(object_to_assert=object_to_save, type_to_assert=ftype)
+        fullpath = os.path.join(posix_dirname, converted_filename)
+
         match ftype:
             case FileOpts.JSON:
-                FileConverter._assert_type(object_to_assert=object_to_save, type_to_assert=FileOpts.JSON)
-                fullpath = os.path.join(posix_dirname, converted_filename)
                 with open(fullpath, "wb") as f:
                     f.write(object_to_save)
             case FileOpts.PICKLE:
-                FileConverter._assert_type(object_to_assert=object_to_save, type_to_assert=FileOpts.PICKLE)
-                fullpath = os.path.join(posix_dirname, converted_filename)
                 with open(fullpath, "wb") as f:
+                    f.write(object_to_save)
+            case FileOpts.TXT:
+                with open(fullpath, "w", encoding='utf-8') as f:
                     f.write(object_to_save)
             case _:
                 raise TypeError(f"Unsupported file type: {ftype}")
@@ -96,5 +100,8 @@ class FileConverter(ABC):
             case FileOpts.PICKLE:
                 if not isinstance(object_to_assert, bytes):
                     raise TypeError(f"Expected a bytes-like object for conversion to Pickle. Recieved: {type(object_to_assert)}")
+            case FileOpts.TXT:
+                # This might be debugging output, so we are going to remain agnostic on the type we are printing.
+                ...
             case _:
                 raise TypeError(f"Type assertion called for FileConverter, but an unsupported type was passed: {type_to_assert}")

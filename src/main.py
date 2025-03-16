@@ -4,8 +4,12 @@ from api.ipc_management.ipc_options import IPCOptions, MsgType, Recievers, ComTy
 import time
 def main():
     t = time.time()
+    opts = {
+        'save': True,
+        'show': True
+    }
     ScriptProcessor(
-        sift_file="siftscripts/sample1_long.sift")
+        sift_file="siftscripts/targets_only.sift", pickle=opts, ast=opts, json=opts)
 
     t1 = time.time()
 

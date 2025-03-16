@@ -54,3 +54,11 @@ class GrammarContainer:
             grammar_list.append(imp)
         # Finally, join them separated by newlines.
         return "\n".join(grammar_list)
+
+    def get(self, rule: str):
+        if (found := self.production_map.get(rule, None)) is not None:
+            return found
+        # then see if there is a qualifier before the key that we could still mathc
+        for rule_name, value in self.production_map.items():
+            if rule_name[1:] == rule:
+                return value

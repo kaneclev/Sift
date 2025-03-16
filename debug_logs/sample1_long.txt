@@ -1,0 +1,61 @@
+ScriptTree:
+  Targets:
+    - Google: https://www.google.com
+    - Amazon: https://www.amazon.com
+    - eBay: https://www.ebay.com
+    - YouTube: https://www.youtube.com
+    - Wikipedia: https://www.wikipedia.org
+  Action Blocks:
+    1.       ActionBlock (target='Google'): 
+        1.           Filter(op  type HTMLPropertyType.TAG val ['"div"', '"p"'] meta {'from_alias': '', 'raw_filter': 'tag ["div", "p"]', 'assignment': 'google_div_p;'})
+        2.           Filter(op LogicalOperatorType.AND type  val  meta {'from_alias': '', 'raw_filter': 'attribute "class": "search-result" and text "News"', 'assignment': 'google_news;'})
+          ├──               Filter(op  type HTMLPropertyType.ATTRIBUTE val {'"class"': '"search-result"'} meta )
+          └──               Filter(op  type HTMLPropertyType.TEXT val ['"News"'] meta )
+        3.           Filter(op  type HTMLPropertyType.TEXT val ['"Breaking"', '"Latest"'] meta {'from_alias': 'google_news', 'raw_filter': 'text ["Breaking", "Latest"]', 'assignment': 'google_breaking_news;'})
+        4.           Filter(op LogicalOperatorType.AND type  val  meta {'from_alias': '', 'raw_filter': 'tag "a" and attribute "href": "https://.*"', 'assignment': 'google_links;'})
+          ├──               Filter(op  type HTMLPropertyType.TAG val ['"a"'] meta )
+          └──               Filter(op  type HTMLPropertyType.ATTRIBUTE val {'"href"': '"https://.*"'} meta )
+    2.       ActionBlock (target='Amazon'): 
+        1.           Filter(op  type HTMLPropertyType.ATTRIBUTE val {'"class"': '"discount"'} meta {'from_alias': '', 'raw_filter': 'attribute ["class": "price", "class": "discount"]', 'assignment': 'amazon_products;'})
+        2.           Filter(op  type HTMLPropertyType.TEXT val ['"Sale"', '"Offer"', {'contains': {'options': ['"Sale"', '"Offer"']}}] meta {'from_alias': 'amazon_products', 'raw_filter': 'text contains ["Sale", "Offer"]', 'assignment': 'amazon_sales;'})
+        3.           Filter(op LogicalOperatorType.AND type  val  meta {'from_alias': '', 'raw_filter': 'tag "img" and attribute "src": ".*"', 'assignment': 'amazon_images;'})
+          ├──               Filter(op  type HTMLPropertyType.TAG val ['"img"'] meta )
+          └──               Filter(op  type HTMLPropertyType.ATTRIBUTE val {'"src"': '".*"'} meta )
+        4.           Filter(op LogicalOperatorType.AND type  val  meta {'from_alias': '', 'raw_filter': 'tag "div" and attribute ["class": "review", "data-rating": ">4"]', 'assignment': 'amazon_reviews;'})
+          ├──               Filter(op  type HTMLPropertyType.TAG val ['"div"'] meta )
+          └──               Filter(op  type HTMLPropertyType.ATTRIBUTE val {'"class"': '"review"', '"data-rating"': '">4"'} meta )
+    3.       ActionBlock (target='eBay'): 
+        1.           Filter(op LogicalOperatorType.AND type  val  meta {'from_alias': '', 'raw_filter': 'tag "li" and (text contains "Buy It Now" or text contains "Auction")', 'assignment': 'ebay_items;'})
+          ├──               Filter(op  type HTMLPropertyType.TAG val ['"li"'] meta )
+          └──               Filter(op LogicalOperatorType.OR type  val  meta )
+              ├──                   Filter(op  type HTMLPropertyType.TEXT val [{'contains': '"Buy It Now"'}] meta )
+              └──                   Filter(op  type HTMLPropertyType.TEXT val [{'contains': '"Auction"'}] meta )
+        2.           Filter(op  type HTMLPropertyType.ATTRIBUTE val {'"price"': '"10-100"'} meta {'from_alias': 'ebay_items', 'raw_filter': 'attribute "price": "10-100"', 'assignment': 'ebay_affordable_auctions;'})
+        3.           Filter(op LogicalOperatorType.AND type  val  meta {'from_alias': '', 'raw_filter': 'tag "a" and attribute "class": "seller-profile"', 'assignment': 'ebay_seller_profiles;'})
+          ├──               Filter(op  type HTMLPropertyType.TAG val ['"a"'] meta )
+          └──               Filter(op  type HTMLPropertyType.ATTRIBUTE val {'"class"': '"seller-profile"'} meta )
+        4.           Filter(op  type HTMLPropertyType.ATTRIBUTE val {'"src"': []} meta {'from_alias': 'ebay_items', 'raw_filter': 'attribute "src": any', 'assignment': 'ebay_item_images;'})
+    4.       ActionBlock (target='YouTube'): 
+        1.           Filter(op LogicalOperatorType.AND type  val  meta {'from_alias': '', 'raw_filter': 'tag "a" and attribute ["class": "video-title", "href": "/watch.*"]', 'assignment': 'youtube_videos;'})
+          ├──               Filter(op  type HTMLPropertyType.TAG val ['"a"'] meta )
+          └──               Filter(op  type HTMLPropertyType.ATTRIBUTE val {'"class"': '"video-title"', '"href"': '"/watch.*"'} meta )
+        2.           Filter(op LogicalOperatorType.AND type  val  meta {'from_alias': 'youtube_videos', 'raw_filter': 'tag "a" and attribute "class": "channel-name"', 'assignment': 'youtube_channels;'})
+          ├──               Filter(op  type HTMLPropertyType.TAG val ['"a"'] meta )
+          └──               Filter(op  type HTMLPropertyType.ATTRIBUTE val {'"class"': '"channel-name"'} meta )
+        3.           Filter(op LogicalOperatorType.AND type  val  meta {'from_alias': '', 'raw_filter': 'tag "p" and text ["helpful", "liked"]', 'assignment': 'youtube_comments;'})
+          ├──               Filter(op  type HTMLPropertyType.TAG val ['"p"'] meta )
+          └──               Filter(op  type HTMLPropertyType.TEXT val ['"helpful"', '"liked"'] meta )
+        4.           Filter(op LogicalOperatorType.AND type  val  meta {'from_alias': '', 'raw_filter': 'tag "span" and attribute "class": "view-count"', 'assignment': 'youtube_view_counts;'})
+          ├──               Filter(op  type HTMLPropertyType.TAG val ['"span"'] meta )
+          └──               Filter(op  type HTMLPropertyType.ATTRIBUTE val {'"class"': '"view-count"'} meta )
+    5.       ActionBlock (target='Wikipedia'): 
+        1.           Filter(op  type HTMLPropertyType.TAG val ['"h1"', '"h2"', '"h3"'] meta {'from_alias': '', 'raw_filter': 'tag ["h1", "h2", "h3"]', 'assignment': 'wiki_headers;'})
+        2.           Filter(op LogicalOperatorType.AND type  val  meta {'from_alias': '', 'raw_filter': 'tag "p" and text contains "science"', 'assignment': 'wiki_science_paragraphs;'})
+          ├──               Filter(op  type HTMLPropertyType.TAG val ['"p"'] meta )
+          └──               Filter(op  type HTMLPropertyType.TEXT val [{'contains': '"science"'}] meta )
+        3.           Filter(op LogicalOperatorType.AND type  val  meta {'from_alias': '', 'raw_filter': 'tag "a" and attribute "href": "^https://.*"', 'assignment': 'wiki_external_links;'})
+          ├──               Filter(op  type HTMLPropertyType.TAG val ['"a"'] meta )
+          └──               Filter(op  type HTMLPropertyType.ATTRIBUTE val {'"href"': '"^https://.*"'} meta )
+        4.           Filter(op LogicalOperatorType.AND type  val  meta {'from_alias': '', 'raw_filter': 'tag "tr" and attribute ["class": "data-row", "type": "highlight"]', 'assignment': 'wiki_highlighted_rows;'})
+          ├──               Filter(op  type HTMLPropertyType.TAG val ['"tr"'] meta )
+          └──               Filter(op  type HTMLPropertyType.ATTRIBUTE val {'"class"': '"data-row"', '"type"': '"highlight"'} meta )

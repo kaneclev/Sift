@@ -44,6 +44,7 @@ class IPC:
                 IPC._send_file_msg(message=message, ftype=FileOpts.JSON, filename=filename, recipient=recipient)
             case _:
                 pass
+
     @staticmethod
     def _assign_correct_filename(filename: str, recipient: Recievers):
         match recipient:
@@ -58,7 +59,7 @@ class IPC:
     def _send_file_msg(message, ftype: FileOpts, filename: str, recipient: Recievers):
         match recipient:
             case Recievers.REQUEST_MANAGER:
-                FileConverter._save_as(os.environ["REQUEST_COM"],
+                FileConverter.save_as(os.environ["REQUEST_COM"],
                                        raw_basename=os.path.basename(filename),
                                        ftype=ftype, object_to_save=message)
             case _:

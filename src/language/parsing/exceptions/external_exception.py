@@ -1,3 +1,6 @@
+from typing import Dict
+
+
 class ExternalExceptionError(Exception):
     """Base class for external-facing exception hierarchy.
 
@@ -64,3 +67,23 @@ class MultipleTargetListDefinitionsError(MultipleDefinitionsError):
             original_definition,
             formatted_offending_alternate_definitions_string
         )
+class SyntaxError(ExternalExceptionError):
+    def __init__(self, context: Dict):
+        self.offense = context["offense"]
+        self.col = context["col"]
+        self.line = context["line"]
+        self.expected: Dict[str, str] = context["expected"]
+        self.pretty_expected = []
+
+        for exp_rule, _ in self.expected.items():
+            self.pretty_expected.append(f"'{exp_rule}'")
+
+        self.expected = " ".join(self.pretty_expected)
+
+    def __str__(self):
+        reason = [
+            f"Unexpected values: '{self.offense}' at line {self.line}, column {self.col}. "
+            f"Expected one of: {self.expected}"
+        ]
+        return "\n".join(reason)
+

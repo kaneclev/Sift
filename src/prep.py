@@ -5,6 +5,16 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from language.parsing.exceptions.external_exception import SyntaxError
+
+
+def custom_excepthook(exctype, value, tb):
+    if isinstance(value, SyntaxError):
+        print(value)  # Only print your custom error message.
+    else:
+        # For other exceptions, use the default behavior.
+        sys.__excepthook__(exctype, value, tb)
+sys.excepthook = custom_excepthook
 
 def prep():
     """ Prepares the environment for the execution of the Sift module.

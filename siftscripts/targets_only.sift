@@ -1,4 +1,4 @@
-targets: [test_targ: "some_url"]
+targets =  [test_targ: "some_url"]
 // action list starts here
 
 hi: {  
