@@ -36,6 +36,10 @@ func mapArg(option, value string) bool {
 		fmt.Println("Unrecognized option: ", clean_option)
 		return false
 	}
+	is_valid_value := validateAssociatedValue(clean_option, value)
+	if !is_valid_value {
+		return false
+	}
 
 	err := os.Setenv(clean_option, value)
 	if err != nil {
@@ -45,6 +49,18 @@ func mapArg(option, value string) bool {
 		fmt.Printf("\nRegistered argument %s = %s for this run\n", clean_option, value)
 	}
 
+	return true
+}
+func validateAssociatedValue(option, value string) bool {
+	switch option {
+	case "match-type":
+		if value != "strict" && value != "loose" {
+			fmt.Printf("Options for 'match-type' are 'loose', 'strict'. %s is not an option", value)
+			return false
+		}
+	default:
+		return true
+	}
 	return true
 }
 func cleanOption(option string) string {
@@ -62,6 +78,8 @@ func cleanOption(option string) string {
 func validateArgRecognition(arg string) bool {
 	switch arg {
 	case "finput":
+		return true
+	case "match-type":
 		return true
 	default:
 		return false
