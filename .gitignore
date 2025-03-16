@@ -21,3 +21,4 @@ logs
 bin
 htmlcov
 *.exe
+debug_logs
