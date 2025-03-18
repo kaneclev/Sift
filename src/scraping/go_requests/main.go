@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"siftrequests/get"
 	"siftrequests/ipc"
+	"strconv"
 )
 
 var ENVRELPATH = "./.env"
@@ -23,6 +25,12 @@ func main() {
 	for i, req := range requests_encoding_collection.Requests {
 		fmt.Printf("\nRequest %d: URL=%s, Alias=%s\n", i, req.URL, req.Alias)
 	}
+	max_num_prox, err := strconv.Atoi(os.Getenv("MAX_PROXIES"))
+	if err != nil {
+		fmt.Printf("\n Cannot detect the max number of proxies, so cannot load them (environment issue.) No proxies for this request. (err: %v)", err)
+		return
+	}
+	proxies_available := get.GetProxies()
 }
 
 func getRequests() ipc.RCollection {
