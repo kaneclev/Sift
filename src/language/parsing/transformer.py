@@ -42,7 +42,6 @@ class GenericGrammar(Lark):
         pass
 
 class GenericTransformer(Transformer):
-    ISSUES = {}
     """ A base class for interfacing with the Lark 'Transformer' class.
 
     *Note:* This class is not indended to be used outside of transformer.py
