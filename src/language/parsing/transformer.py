@@ -10,9 +10,6 @@ from lark.tree import Meta
 from language.grammar_container import GrammarContainer
 from language.parsing.exceptions.external_exception import SyntaxError
 
-
-
-
 # A logger used by Lark in reporting any information related to the content parsing
 logger.setLevel(level=logging.INFO)
 class GenericGrammar(Lark):
@@ -133,7 +130,9 @@ class GrammarHandler:
 
     def handle_unexpected_token(self, e: exceptions.UnexpectedInput):
         context = {}
-        context["offense"] = e.token.value
+
+
+        context["offense"] = e.get_context(self.content)
         context["col"] = e.column
         context["line"] = e.line
         expected_rules = e.interactive_parser.choices()
