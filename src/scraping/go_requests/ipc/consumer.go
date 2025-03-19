@@ -20,6 +20,39 @@ type TargetsWrapper struct {
 	Targets []RequestEncoding `json:"targets"`
 }
 
+func (col *RCollection) GetURLs() []string {
+	urls := make([]string, 0, len(col.Requests))
+	for _, req := range col.Requests {
+		urls = append(urls, req.URL)
+	}
+	return urls
+}
+func (col *RCollection) MapURLsToAliases(urls []string) map[string]string {
+	aliasMap := make(map[string]string)
+
+	// Build a lookup table for URL -> Alias from the collection.
+	lookup := make(map[string]string)
+	for _, req := range col.Requests {
+		lookup[req.URL] = req.Alias
+	}
+
+	// For each URL in the provided slice, check if an alias exists.
+	for _, url := range urls {
+		if alias, ok := lookup[url]; ok {
+			aliasMap[url] = alias
+		}
+	}
+
+	return aliasMap
+}
+func (col *RCollection) GetAliasByURL(url string) string {
+	for _, req := range col.Requests {
+		if req.URL == url {
+			return req.Alias
+		}
+	}
+	return ""
+}
 func (col *RCollection) FindRequests(file, dir, match_type string) error {
 	files_to_search := matchFiles(file, dir, match_type)
 
@@ -60,13 +93,16 @@ func matchFiles(file, dir string, match_type string) []string {
 	if match_type == "strict" {
 		is_loose = false
 	}
+	fmt.Printf("\n Matching with match_type = %s...\n", match_type)
 	basename := filepath.Base(file)
-	to_compare := strings.TrimSuffix("-reqmsg-url-alias.json", basename)
+	to_compare := strings.TrimSuffix(basename, "-reqmsg-url-alias.json")
+	fmt.Printf("\n Trying to match: %s", to_compare)
 	for _, filename := range files_to_match {
 		is_appendable := false
 
 		if is_loose {
 			if strings.Contains(filename, to_compare) {
+				fmt.Printf("\nFound %s contains %s", filename, to_compare)
 				is_appendable = true
 			}
 		} else {

@@ -138,8 +138,6 @@ class ScriptProcessor:
                              Instead, it was {self.script}')
         return self.script.parse_file()
 
-
-
     def to_ir(self) -> IntermediateRepresentation:
         ir_tree = TreeReader.to_ir(self.ast, os.path.basename(self.script.file_path))
         return ir_tree

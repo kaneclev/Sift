@@ -3,9 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"siftrequests/get"
+	get "siftrequests/crawling"
 	"siftrequests/ipc"
-	"strconv"
 )
 
 var ENVRELPATH = "./.env"
@@ -17,7 +16,7 @@ func main() {
 	if !setup_success {
 		return
 	}
-	requests_encoding_collection := getRequests()
+	requests_encoding_collection, requester_filename := getRequests()
 	if len(requests_encoding_collection.Requests) == 0 {
 		fmt.Println("There were no requests found.")
 		return
@@ -25,28 +24,30 @@ func main() {
 	for i, req := range requests_encoding_collection.Requests {
 		fmt.Printf("\nRequest %d: URL=%s, Alias=%s\n", i, req.URL, req.Alias)
 	}
-	max_num_prox, err := strconv.Atoi(os.Getenv("MAX_PROXIES"))
-	if err != nil {
-		fmt.Printf("\n Cannot detect the max number of proxies, so cannot load them (environment issue.) No proxies for this request. (err: %v)", err)
-		return
-	}
-	proxies_available := get.GetProxies()
+	beginScraping(&requests_encoding_collection, requester_filename)
+
 }
 
-func getRequests() ipc.RCollection {
-	location := os.Getenv("REQUEST_COM")
+func beginScraping(collection_to_use *ipc.RCollection, requester_filename string) {
+	options := get.DefineCrawlerBehavior(collection_to_use, "", "", "")
+	// todo: nil will have to change to different callable response handlers as we expand the number of ways to communicate back to the caller.
+	get.GetContent(options, requester_filename, collection_to_use, nil)
+}
+
+func getRequests() (ipc.RCollection, string) {
+	location := os.Getenv("REQUEST_COM") + "/Sent"
 	file := os.Getenv("finput")
 	match_type := os.Getenv("match-type")
 	if len(match_type) == 0 {
 		fmt.Println("\nA match type for the request collection must be specified using --match-type (options: loose, strict)")
-		return ipc.RCollection{}
+		return ipc.RCollection{}, ""
 	}
 
 	// & is creating a pointer to the new RCollection instance which the FindRequests method needs in order to modify the RCollection instance
 	request_container := &ipc.RCollection{}
 
 	request_container.FindRequests(file, location, match_type)
-	return *request_container
+	return *request_container, file
 }
 
 func setup(args []string) bool {

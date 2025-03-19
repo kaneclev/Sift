@@ -59,7 +59,10 @@ class IPC:
     def _send_file_msg(message, ftype: FileOpts, filename: str, recipient: Recievers):
         match recipient:
             case Recievers.REQUEST_MANAGER:
-                FileConverter.save_as(os.environ["REQUEST_COM"],
+                if (request_com_base_dir := os.environ.get("REQUEST_COM", None)) is None:
+                    raise ValueError("Expected environment variable 'REQUEST_COM' to be registered; is it there? Did we load the environment?")
+                save_dir = os.path.join(request_com_base_dir, "Sent")
+                FileConverter.save_as(save_to_dir=save_dir,
                                        raw_basename=os.path.basename(filename),
                                        ftype=ftype, object_to_save=message)
             case _:

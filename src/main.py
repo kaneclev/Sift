@@ -6,7 +6,7 @@ def main():
     t = time.time()
 
     ScriptProcessor(
-        sift_file="siftscripts/ebay_use_case.sift")
+        sift_file="siftscripts/reddit_test.sift")
 
     t1 = time.time()
 

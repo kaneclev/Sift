@@ -11,9 +11,9 @@ build: $(BUILD_DIR)
 	cd $(PROJ_DIR) && go build -o ../../../$(BUILD_DIR)/$(APP_NAME).exe
 
 run: build
-	$(BUILD_DIR)/$(APP_NAME).exe --finput sift --match-type loose
+	$(BUILD_DIR)/$(APP_NAME).exe --finput reddit --match-type loose
 exec: 
-	$(BUILD_DIR)/$(APP_NAME).exe --finput sift --match-type loose
+	$(BUILD_DIR)/$(APP_NAME).exe --finput ebay --match-type loose
 
 clean:
 	rm -rf $(BUILD_DIR)

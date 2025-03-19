@@ -1,0 +1,5 @@
+targets = [reddit: "https://www.reddit.com/r/Destiny/"]
+
+reddit: {
+    extract where tag "anty" -> test;
+}
