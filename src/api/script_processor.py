@@ -54,11 +54,11 @@ class ScriptProcessor:
             "send": send if send is not None else default_options["send"]
         }
 
-        self.script = self._generate_siftfile()
-        self.ast = self._generate_ast()
-        self.ir_obj = self.to_ir()
-        self._option_handler()
+        self.script: SiftFile = None
+        self.ast: ScriptTree = None
+        self.ir_obj: IntermediateRepresentation = None
         pass
+
     def _handle_ast_options(self, options: Dict):
         txt_ast = None
         save = options.get('save', False)
@@ -98,28 +98,29 @@ class ScriptProcessor:
             if show:
                 print(pkl_obj)
 
-    def _option_handler(self):
-        for opt, val in self.options.items():
-            if val:
-                match opt:
-                    case 'ast':
-                        self._handle_ast_options(options=val)
-                        pass
-                    case 'json':
-                        self._handle_json_options(options=val)
-                        pass
-                    case 'pickle':
-                        self._handle_pickle_options(options=val)
-                        pass
-                    case 'send':
-                        IPC.send(ir_obj=self.ir_obj, options=val)
-                    case _:
-                        if self.options.get(opt, None) is None:
-                            raise ValueError(f"Unknown option: {opt}")
-                        else:
-                            ...
+    def _option_handler(self, option):
+        value = self.options.get(option, None)
+        if value is None:
+            raise ValueError(f"Unknown option: {option}")
+        if value:
+            match option:
+                case 'ast':
+                    self._handle_ast_options(options=value)
+                    pass
+                case 'json':
+                    self._handle_json_options(options=value)
+                    pass
+                case 'pickle':
+                    self._handle_pickle_options(options=value)
+                    pass
+                    
+    def send_ir(self):
+        if not self.ir_obj:
+            self.ir_obj = self.to_ir()
+        confirmations = IPC.send(ir_obj=self.ir_obj, options=self.options['send'])
+        return confirmations
 
-    def _generate_siftfile(self) -> SiftFile:
+    def prepare_file(self) -> SiftFile:
         """ Private method for generating a SiftFile instance.
         self.sift_file is the file path to the file we will be parsing.
         The SiftFile class will immediately validate the SiftFile, so that we know its good to parse.'
@@ -132,13 +133,16 @@ class ScriptProcessor:
         """
         return SiftFile(self.sift_file_path)
 
-    def _generate_ast(self) -> ScriptTree:
+    def generate_ast(self) -> ScriptTree:
         if not self.script:
-            raise ValueError(f'Expected a valid SiftFile instance to create the ScriptTree with. \
-                             Instead, it was {self.script}')
-        return self.script.parse_file()
+            self.script = self.prepare_file()
+        self.ast = self.script.parse_file()
+        self._option_handler('ast')
+        return self.ast
 
     def to_ir(self) -> IntermediateRepresentation:
-        ir_tree = TreeReader.to_ir(self.ast, os.path.basename(self.script.file_path))
-        return ir_tree
+        self.ir_obj = TreeReader.to_ir(self.ast, os.path.basename(self.script.file_path))
+        # Pickle is the relevant option for to_ir. 
+        self._option_handler('pickle')
+        return self.ir_obj
 

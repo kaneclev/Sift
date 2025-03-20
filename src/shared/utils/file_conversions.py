@@ -84,6 +84,7 @@ class FileConverter(ABC):
                     f.write(object_to_save)
             case _:
                 raise TypeError(f"Unsupported file type: {ftype}")
+        return fullpath
 
     @staticmethod
     def update_options(options_to_update: Dict[ConversionOptions, Any], base_options: Dict[ConversionOptions, Any]):

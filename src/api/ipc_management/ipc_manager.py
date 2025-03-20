@@ -12,12 +12,15 @@ class IPC:
     @staticmethod
     def send(ir_obj: IntermediateRepresentation,
              options: List[IPCOptions]):
+        sent = []
         for opt in options:
             translated_obj_to_send = IPC._form_ipc_object(ir_obj=ir_obj, recipient=opt.recipient, form=opt.msg_type)
-            IPC.handle_message(message=translated_obj_to_send,
+            sent_confirmation = IPC.handle_message(message=translated_obj_to_send,
                                recipient=opt.recipient,
                                form=opt.msg_type,
                                filename=ir_obj.file_name)
+            sent.append({opt.msg_type: sent_confirmation})
+        return sent
 
     @staticmethod
     def _form_ipc_object(ir_obj: IntermediateRepresentation, recipient: Recievers, form: MsgType):
@@ -41,7 +44,7 @@ class IPC:
         match form:
             case MsgType.JSON:
                 filename = IPC._assign_correct_filename(filename=filename, recipient=recipient)
-                IPC._send_file_msg(message=message, ftype=FileOpts.JSON, filename=filename, recipient=recipient)
+                return IPC._send_file_msg(message=message, ftype=FileOpts.JSON, filename=filename, recipient=recipient)
             case _:
                 pass
 
@@ -62,8 +65,9 @@ class IPC:
                 if (request_com_base_dir := os.environ.get("REQUEST_COM", None)) is None:
                     raise ValueError("Expected environment variable 'REQUEST_COM' to be registered; is it there? Did we load the environment?")
                 save_dir = os.path.join(request_com_base_dir, "Sent")
-                FileConverter.save_as(save_to_dir=save_dir,
+                saved_to_file = FileConverter.save_as(save_to_dir=save_dir,
                                        raw_basename=os.path.basename(filename),
                                        ftype=ftype, object_to_save=message)
+                return saved_to_file
             case _:
                 ...
