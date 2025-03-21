@@ -1,10 +1,18 @@
-import os
-from typing import Dict
-from prep import prep  # noqa: F401, I001
-from api.script_processor import ScriptProcessor  # noqa: F401
-from api.ipc_management.ipc_options import IPCOptions, MsgType, Recievers, ComTypes  # noqa: F401
-import time
 import argparse
+import os
+import time
+
+from typing import Dict
+
+from api.ipc_management.ipc_options import (  # noqa: F401
+    ComTypes,
+    IPCOptions,
+    MsgType,
+    Recievers,
+)
+from api.script_processor import ScriptProcessor  # noqa: F401
+from prep import prep  # noqa: F401, I001
+
 OPTS = {}
 def parse_and_communicate():
     ast_opts = {

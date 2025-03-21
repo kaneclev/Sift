@@ -3,8 +3,8 @@ from typing import List
 
 import orjson
 
+from api.ipc_management.target_handler import TargetHandler
 from IR.ir_base import IntermediateRepresentation
-from scraping.sift_requests.target_handler import TargetHandler
 
 
 class RequestServiceFormats(Enum):
