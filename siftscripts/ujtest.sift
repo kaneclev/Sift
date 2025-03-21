@@ -1,0 +1,4 @@
+targets = [UJs: "https://www.unionjacksvt.com/"]
+UJs: {
+    extract where tag "span" and attribute "style": contains "display" -> uj_hours;
+}

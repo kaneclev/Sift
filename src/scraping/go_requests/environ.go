@@ -81,6 +81,8 @@ func validateArgRecognition(arg string) bool {
 		return true
 	case "match-type":
 		return true
+	case "fout":
+		return true
 	default:
 		return false
 

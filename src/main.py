@@ -33,18 +33,20 @@ def parse_and_communicate():
 
 def start_scrape(items_sent: list):
     os.system("make build")
+    print(f"Built SiftRequests...")
 
     for item in items_sent:
         for k, v in item.items():
             if k == MsgType.JSON:
                 pattern = OPTS["pattern"]
                 if pattern:
-                    os.system(f"./bin/siftrequests -finput {pattern} --match-type {OPTS['match_type']}")
+                    os.system(f"./bin/siftrequests --finput {pattern} --fout {OPTS['file_output']} --match-type {OPTS['match_type']}")
                 else:
-                    os.system(f"./bin/siftrequests -finput {os.path.basename(v)} --match-type {OPTS['match_type']}")
+                    os.system(f"./bin/siftrequests --finput {os.path.basename(v)} --fout {OPTS['file_output']} --match-type {OPTS['match_type']}")
 
 def arg_handler(parser: argparse.ArgumentParser) -> Dict[str, str]:
     parser.add_argument("-f", "--file", help="File to parse", type=str, required=True)
+    parser.add_argument("-fo", "--file-output", help="File to output the request data to", type=str, required=True)
     parser.add_argument("-d", "--debug", help="Show intermediate steps in the parsing process.", action="store_true", required=False)
     parser.add_argument("-ds", "--debug-save", help="Save intermediate steps in the parsing process.", action="store_true", required=False)
     parser.add_argument("-pkl", "--pickle", help="Save the IR as a pickle file.", action="store_true", required=False)

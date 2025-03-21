@@ -1,0 +1,5 @@
+targets = [jelly: "https://us.jellycat.com/animals"]
+
+jelly: {
+    extract where tag "a" and attribute "aria-label": contains "Timmy Turtle" -> prioce;
+}

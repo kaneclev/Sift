@@ -96,14 +96,13 @@ func DefineCrawlerBehavior(url_alias_container *ipc.RCollection, proxy, response
 	}
 	defined_opts := &types.Options{
 		URLs:                url_alias_container.GetURLs(),
-		Proxy:               proxy,
 		Strategy:            "depth-first",
+		Verbose:             true,
 		BodyReadSize:        math.MaxInt,
 		Timeout:             10,
 		Parallelism:         parallel_limit,
 		RateLimit:           150,
 		Headless:            true,
-		Silent:              true,
 		HeadlessNoIncognito: true,
 		TechDetect:          true,
 		XhrExtraction:       true,
@@ -114,14 +113,14 @@ func DefineCrawlerBehavior(url_alias_container *ipc.RCollection, proxy, response
 }
 
 type ResponseMetaWrapper struct {
-	RequesterFilename string
-	Alias             string
+	OutFile string
+	Alias   string
 }
 
-func GetContent(options *types.Options, requester_filename string, collection *ipc.RCollection, on_results types.OnResultCallback) {
+func GetContent(options *types.Options, outfile string, collection *ipc.RCollection, on_results types.OnResultCallback) {
 	wrapper := ResponseMetaWrapper{
-		RequesterFilename: requester_filename,
-		Alias:             "",
+		OutFile: outfile,
+		Alias:   "",
 	}
 	if on_results == nil {
 		options.OnResult = wrapper.contentReceiver
@@ -180,7 +179,7 @@ func (meta_wrapper *ResponseMetaWrapper) contentReceiver(content output.Result) 
 		fmt.Printf("parseResponse error: %v\n", err)
 		return
 	}
-	outFile := ipc.GetReturnJSONFilename(meta_wrapper.RequesterFilename)
+	outFile := ipc.GetReturnJSONFilename(meta_wrapper.OutFile)
 	// (Optional) Save the structured result to disk
 	if err := SaveParsedResponseToFile(parsedResp, outFile); err != nil {
 		fmt.Printf("Error saving parsed response: %v\n", err)

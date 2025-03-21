@@ -55,12 +55,14 @@ func (col *RCollection) GetAliasByURL(url string) string {
 }
 func (col *RCollection) FindRequests(file, dir, match_type string) error {
 	files_to_search := matchFiles(file, dir, match_type)
-
+	fmt.Printf("\nFiles to search: %v\n", files_to_search)
 	for _, filePath := range files_to_search {
 		var wrapper TargetsWrapper
 
 		f, err := os.Open(filePath)
 		if err != nil {
+			fmt.Printf("Error when opening %s, reason: %v. Skipping.\n", filePath, err)
+
 			return err
 		}
 
@@ -95,19 +97,22 @@ func matchFiles(file, dir string, match_type string) []string {
 	}
 	fmt.Printf("\n Matching with match_type = %s...\n", match_type)
 	basename := filepath.Base(file)
-	to_compare := strings.TrimSuffix(basename, "-reqmsg-url-alias.json")
-	fmt.Printf("\n Trying to match: %s", to_compare)
+	pure_given_filename_to_compare := strings.TrimSuffix(basename, "-reqmsg-url-alias.json")
+	fmt.Printf("\n Trying to match: %s\n", pure_given_filename_to_compare)
 	for _, filename := range files_to_match {
 		is_appendable := false
 
 		if is_loose {
-			if strings.Contains(filename, to_compare) {
-				fmt.Printf("\nFound %s contains %s", filename, to_compare)
+			if strings.Contains(filename, pure_given_filename_to_compare) {
+				fmt.Printf("\nFound %s contains %s", filename, pure_given_filename_to_compare)
 				is_appendable = true
 			}
 		} else {
-			if filename == to_compare || filename == basename {
+			potential_matching_basename := filepath.Base(filename)
+			pure_potential_matching_basename := strings.TrimSuffix(potential_matching_basename, "-reqmsg-url-alias.json")
+			if pure_potential_matching_basename == pure_given_filename_to_compare || potential_matching_basename == basename {
 				is_appendable = true
+				fmt.Printf("\nFound %s matches %s", filename, file)
 			}
 		}
 		if is_appendable {
