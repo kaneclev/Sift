@@ -1,15 +1,14 @@
 import os
 
-from typing import Dict, List
+from typing import List, Union
 
 from api.ipc_management.ipc_manager import IPC
 from api.ipc_management.ipc_options import ComTypes, IPCOptions, MsgType, Recievers
-from file_operations.sift_file import ScriptTree, SiftFile
+from file_operations.script_representations import ScriptObject
 from IR.ir_base import IntermediateRepresentation
-from IR.ir_format_conversion import IRConverter
 from IR.read_tree import TreeReader
-from language.parsing.ast.ast_json_converter import SiftASTConverter
-from shared.utils.file_conversions import FileConverter, FileOpts
+from language.parsing.ast.script_tree import ScriptTree
+from language.parsing.parser import Parser
 
 DEBUG_LOG_DIR = os.environ["DEBUG_LOGS"]
 
@@ -17,132 +16,31 @@ DEBUG_LOG_DIR = os.environ["DEBUG_LOGS"]
 # #! Main API For Parsing SiftScripts
 ################################################
 class ScriptProcessor:
-    def __init__(self, sift_file: str, ast: Dict = None,
-                 json: Dict = None, pickle: Dict = None,
-                 send: List[IPCOptions] = None):
+    def __init__(self, script: ScriptObject):
+        # TODO: This class might need to be the one to handle error propogation.
         """ API For parsing and generating IR for a sift script.
 
         Args:
-            sift_file (str): The file to process.
-            ast (dict): Default {"save": False, "show": False}. Saves to debug_logs, prints to stdout. (The string representation of the AST object)
-            json (dict): Default {"save": False, "show": False}. JSON-oriented AST options. Saves to json_conversions by default. Prints to stdout.
-            pickle (dict): Default {"show": False, "save": False}. Pickles the IR and sends it to Sift/IRConversions under the sift file filename. Optionally prints to stdout.
-            send (list[IPCOptions]): Defaults to [ IPCOptions(com_type=ComTypes.FILESYS, msg_type=MsgType.JSON, recipient=Recievers.REQUEST_MANAGER) ]
-                Given a list of IPC (Inter-Process Communication) options, sends the IR data as specified.
+            script (ScriptObject): The script object to process (must inherit from ScriptObject)
         """
-        # To allow for value-checking without 'no variable exists' issues.
-        self.sift_file_path: str = None
-        self.sift_file_basename: str = None
-        self.sift_file_instance: SiftFile = None
-        self.options: Dict[str, bool] = None
-        self.ast: ScriptTree = None
-
-
-        self.sift_file_path = sift_file
-        self.sift_file_basename = os.path.basename(sift_file)
-        default_options = {
-            "pickle": {"save": False, "show": False},
-            "json": {"save": False, "show": False},
-            "ast": {"save": False, "show": False},
-            "send": [IPCOptions(com_type=ComTypes.FILESYS, msg_type=MsgType.JSON, recipient=Recievers.REQUEST_MANAGER)]
-        }
-
-        self.options = {
-            "pickle": {**default_options["pickle"], **(pickle or {})},
-            "json": {**default_options["json"], **(json or {})},
-            "ast": {**default_options["ast"], **(ast or {})},
-            "send": send if send is not None else default_options["send"]
-        }
-
-        self.script: SiftFile = None
-        self.ast: ScriptTree = None
-        self.ir_obj: IntermediateRepresentation = None
+        self.script: ScriptObject = script
         pass
 
-    def _handle_ast_options(self, options: Dict):
-        txt_ast = None
-        save = options.get('save', False)
-        show = options.get('show', False)
-        if save or show:
-            txt_ast = str(self.script.get_tree_obj())
-        if save:
-            # We write to debug_logs by default.
-            FileConverter.save_as(save_to_dir=DEBUG_LOG_DIR,
-                                    raw_basename=os.path.basename(self.script.file_path),
-                                    ftype=FileOpts.TXT, object_to_save=txt_ast)
-        if show:
-            print(txt_ast)
-
-    def _handle_json_options(self, options: Dict):
-        json_ast = None
-        save = options.get('save', False)
-        show = options.get('show', False)
-        if save or show:
-            opts = {
-                SiftASTConverter.ConversionOptions.SAVE_FILE: save,
-                SiftASTConverter.ConversionOptions.FILE_NAME: os.path.basename(self.script.file_path)
-                }
-            json_ast = SiftASTConverter().to_json(ast=self.ast, options=opts)
-            if show:
-                print(json_ast)
-
-    def _handle_pickle_options(self, options: Dict):
-        pkl_obj = None
-        save = options.get('save', False)
-        show = options.get('show', False)
-        if save or show:
-            opts = {
-                IRConverter.ConversionOptions.SAVE_FILE: save,
-            }
-            pkl_obj = IRConverter.to_pickle(ir_obj=self.ir_obj, options=opts)
-            if show:
-                print(pkl_obj)
-
-    def _option_handler(self, option):
-        value = self.options.get(option, None)
-        if value is None:
-            raise ValueError(f"Unknown option: {option}")
-        if value:
-            match option:
-                case 'ast':
-                    self._handle_ast_options(options=value)
-                    pass
-                case 'json':
-                    self._handle_json_options(options=value)
-                    pass
-                case 'pickle':
-                    self._handle_pickle_options(options=value)
-                    pass
-                    
-    def send_ir(self):
-        if not self.ir_obj:
-            self.ir_obj = self.to_ir()
-        confirmations = IPC.send(ir_obj=self.ir_obj, options=self.options['send'])
+    def send_ir(self, ir: IntermediateRepresentation, options: Union[IPCOptions, List[IPCOptions]] = None):
+        if not options:
+            options = IPCOptions(com_type=ComTypes.FILESYS, msg_type=MsgType.JSON, recipient=Recievers.REQUEST_MANAGER)
+        if not ir:
+            ir = self.to_ir()
+        if not isinstance(options, list):
+            options = [options]
+        confirmations = IPC.send(ir_obj=ir, options=options)
         return confirmations
 
-    def prepare_file(self) -> SiftFile:
-        """ Private method for generating a SiftFile instance.
-        self.sift_file is the file path to the file we will be parsing.
-        The SiftFile class will immediately validate the SiftFile, so that we know its good to parse.'
-        Args
-        ----
-            None.
-        Returns
-        -------
-            SiftFile -- A new SiftFile instance.
-        """
-        return SiftFile(self.sift_file_path)
-
-    def generate_ast(self) -> ScriptTree:
-        if not self.script:
-            self.script = self.prepare_file()
-        self.ast = self.script.parse_file()
-        self._option_handler('ast')
-        return self.ast
-
-    def to_ir(self) -> IntermediateRepresentation:
-        self.ir_obj = TreeReader.to_ir(self.ast, os.path.basename(self.script.file_path))
-        # Pickle is the relevant option for to_ir. 
-        self._option_handler('pickle')
-        return self.ir_obj
-
+    def parse(self) -> list[ScriptTree, IntermediateRepresentation]:
+        if not self.script.is_verified:
+            print("\nCannot begin to parse script.")
+            self.script.issues.describe()
+            return
+        ast = Parser(self.script.get_content()).parse_content_to_tree()
+        ir = TreeReader.to_ir(ast, identifier=self.script.get_id())
+        return [ast, ir]

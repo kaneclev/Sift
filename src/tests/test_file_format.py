@@ -9,7 +9,7 @@ from file_operations.exceptions.external.file_exceptions import (
     NotAFileError,
     SiftFileDoesNotExistError,
 )
-from file_operations.sift_file import SiftFile
+from file_operations.script_representations import SiftFile
 from prep import prep
 
 prep()

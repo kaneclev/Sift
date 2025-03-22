@@ -1,4 +1,4 @@
-from file_operations.sift_file import SiftFile
+from file_operations.script_representations import SiftFile
 
 testfile = "C:/Users/Kane/projects/Sift/siftscripts/sample2_long.sift"
 rep = SiftFile(testfile)

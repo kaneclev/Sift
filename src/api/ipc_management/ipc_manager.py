@@ -18,7 +18,7 @@ class IPC:
             sent_confirmation = IPC.handle_message(message=translated_obj_to_send,
                                recipient=opt.recipient,
                                form=opt.msg_type,
-                               filename=ir_obj.file_name)
+                               identifier=ir_obj.identifier)
             sent.append({opt.msg_type: sent_confirmation})
         return sent
 
@@ -40,10 +40,11 @@ class IPC:
                 pass
 
     @staticmethod
-    def handle_message(message, recipient: Recievers, form: MsgType, filename: str = ""):
+    def handle_message(message, recipient: Recievers, form: MsgType, identifier: str = ""):
         match form:
             case MsgType.JSON:
-                filename = IPC._assign_correct_filename(filename=filename, recipient=recipient)
+                assert identifier.strip() != ""
+                filename = IPC._assign_correct_filename(filename=identifier, recipient=recipient)
                 return IPC._send_file_msg(message=message, ftype=FileOpts.JSON, filename=filename, recipient=recipient)
             case _:
                 pass

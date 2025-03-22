@@ -9,13 +9,13 @@ from language.parsing.ast.script_tree import ScriptTree
 
 class TreeReader:
     @staticmethod
-    def ast_to_instructions(ast: ScriptTree, file_name: str) -> IntermediateRepresentation:
+    def ast_to_instructions(ast: ScriptTree, identifier: str) -> IntermediateRepresentation:
         # sort the action blocks
         action_blocks = TreeReader._get_ordered_action_blocks(targets=ast.targets, action_blocks=ast.action_blocks)
         # collect all the actions from the sorted list of action blocks
         url_action_list_dict = TreeReader._action_blocks_to_actions(action_blocks=action_blocks, targets=ast.targets)
         instructions_object_list = TreeReader._actions_to_instructions(url_action_dict=url_action_list_dict)
-        return IntermediateRepresentation(file_name=file_name, instruction_list=instructions_object_list)
+        return IntermediateRepresentation(identifier=identifier, instruction_list=instructions_object_list)
 
     @staticmethod
     def _actions_to_instructions(url_action_dict: Dict[str, List[Action]]) -> List[Instruction]:
@@ -38,6 +38,6 @@ class TreeReader:
         return sorted(action_blocks, key=lambda block: action_block_order_map.get(block.target, float('inf')))
 
     @staticmethod
-    def to_ir(ast: ScriptTree, file_name: str) -> IntermediateRepresentation:
-        ir = TreeReader.ast_to_instructions(ast, file_name=file_name)
+    def to_ir(ast: ScriptTree, identifier: str) -> IntermediateRepresentation:
+        ir = TreeReader.ast_to_instructions(ast, identifier=identifier)
         return ir

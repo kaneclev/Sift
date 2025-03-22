@@ -77,7 +77,6 @@ class SiftFileDoesNotExistError(BaseFileError):
             str: The error message.
         """
         return f"No such .sift file exists: {self.filepath}"
-
 class BadPluginNameError(BaseFileError):
     """ Raised when a plugin filename for a Sift operation is invalid for some reason.
 
