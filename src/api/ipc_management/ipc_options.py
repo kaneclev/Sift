@@ -4,8 +4,10 @@ from enum import Enum, auto
 
 class ComTypes(Enum):
     FILESYS = auto()
+    QUEUE = auto()
 class MsgType(Enum):
     JSON = auto()
+    AMPQ = auto()
 class Recievers(Enum):
     REQUEST_MANAGER = auto()
 @dataclass
@@ -24,7 +26,7 @@ class IPCOptions:
 
         match recipient:
             case Recievers.REQUEST_MANAGER:
-                return (com_type == ComTypes.FILESYS and IPCOptions.validate_com_msg_type_compatibility(msg_type=msg_type, com_type=com_type))
+                return ((com_type == ComTypes.FILESYS or com_type == ComTypes.QUEUE) and IPCOptions.validate_com_msg_type_compatibility(msg_type=msg_type, com_type=com_type))
             case _:
                 ...
 
@@ -33,6 +35,8 @@ class IPCOptions:
         match com_type:
             case ComTypes.FILESYS:
                 return msg_type == MsgType.JSON
+            case ComTypes.QUEUE:
+                return msg_type == MsgType.AMPQ
             case _:
                 ...
 

@@ -1,6 +1,6 @@
 import os
 
-from typing import List
+from typing import Dict, List
 
 from api.ipc_management.ipc_options import IPCOptions, MsgType, Recievers
 from IR.ir_base import IntermediateRepresentation
@@ -11,22 +11,26 @@ from shared.utils.file_conversions import FileConverter, FileOpts, remove_suffix
 class IPC:
     @staticmethod
     def send(ir_obj: IntermediateRepresentation,
-             options: List[IPCOptions]):
+             options: List[IPCOptions]) -> List[Dict[MsgType, bytes]]:
         sent = []
         for opt in options:
             translated_obj_to_send = IPC._form_ipc_object(ir_obj=ir_obj, recipient=opt.recipient, form=opt.msg_type)
-            sent_confirmation = IPC.handle_message(message=translated_obj_to_send,
+            message = IPC.handle_message(message=translated_obj_to_send,
                                recipient=opt.recipient,
                                form=opt.msg_type,
                                identifier=ir_obj.identifier)
-            sent.append({opt.msg_type: sent_confirmation})
+            # NOTE: In the case where we are sending objects to the AMPQ, this is actually not sending; rather, it produces the bytes for the message that will be sent by a diff manager
+            sent.append({opt.msg_type: message})
         return sent
 
     @staticmethod
-    def _form_ipc_object(ir_obj: IntermediateRepresentation, recipient: Recievers, form: MsgType):
+    def _form_ipc_object(ir_obj: IntermediateRepresentation, recipient: Recievers, form: MsgType) -> bytes:
+        json_bytes = IPC._json_ir_translation(ir_obj=ir_obj, recipient=recipient)
         match form:
             case MsgType.JSON:
-                return IPC._json_ir_translation(ir_obj=ir_obj, recipient=recipient)
+                return json_bytes
+            case MsgType.AMPQ:
+                return json_bytes
             case _:
                 pass
 
@@ -46,6 +50,8 @@ class IPC:
                 assert identifier.strip() != ""
                 filename = IPC._assign_correct_filename(filename=identifier, recipient=recipient)
                 return IPC._send_file_msg(message=message, ftype=FileOpts.JSON, filename=filename, recipient=recipient)
+            case MsgType.AMPQ:
+                return message
             case _:
                 pass
 

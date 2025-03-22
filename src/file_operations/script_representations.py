@@ -64,6 +64,9 @@ class File(ScriptObject):
     def __init__(self, file_path: str):
         self.path_obj = None
         super().__init__(to_verify=file_path)
+        if not self.is_verified:
+            print(f"Could not verify script object as being valid: {self.issues.describe()}")
+            return
         self.metadata: File.Metadata = self._get_metadata()
         self.data = self.get_data()
 
@@ -112,7 +115,11 @@ def get_script_object(raw: Any, rtype: RepresentationType) -> ScriptObject:
     match rtype:
         case RepresentationType.FILE:
             assert isinstance(raw, str)
-            return File(raw)
+
+            new_file = File(raw)
+            if not new_file.is_verified:
+                return None
+            return new_file
         case _:
             ...
     return None

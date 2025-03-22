@@ -17,7 +17,7 @@ class Parser:
             script_content (str): The content of the Sift file to be parsed.
         """
         self.raw_content = script_content
-        self.high_level_tree = HighLevelTree.generate(self.raw_content)
+        self.high_level_tree = HighLevelTree.generate(script_content)
         pass
 
     def parse_content_to_tree(self) -> ScriptTree:

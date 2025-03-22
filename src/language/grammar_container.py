@@ -60,5 +60,6 @@ class GrammarContainer:
             return found
         # then see if there is a qualifier before the key that we could still mathc
         for rule_name, value in self.production_map.items():
-            if rule_name[1:] == rule:
+            print(f"Found rule: {rule_name} in map with value: {value}")
+            if rule_name[1:] == rule or rule_name[:-1] == rule:
                 return value

@@ -40,7 +40,7 @@ class ScriptProcessor:
         if not self.script.is_verified:
             print("\nCannot begin to parse script.")
             self.script.issues.describe()
-            return
+            return []
         ast = Parser(self.script.get_content()).parse_content_to_tree()
         ir = TreeReader.to_ir(ast, identifier=self.script.get_id())
         return [ast, ir]

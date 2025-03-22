@@ -135,10 +135,7 @@ class GrammarHandler:
         context["col"] = e.column
         context["line"] = e.line
         expected_rules = e.interactive_parser.choices()
+        context["expected"] =expected_rules
         if not expected_rules:
             raise ValueError(f"There were no valid 'expected next tokens' when an UnexpectedInput error was raised for context: {context}")
-        context["expected"] = {}
-        for rule in expected_rules:
-            if (assoc_value := self.gram_container.get(rule)) is not None:
-                context["expected"][rule] = assoc_value
         raise SyntaxError(context=context)
