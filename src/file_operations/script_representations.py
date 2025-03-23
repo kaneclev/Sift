@@ -14,7 +14,7 @@ from file_operations.exceptions.external.file_exceptions import (
 
 class RepresentationType(Enum):
     FILE = auto()
-    QUEUE = auto()
+    MESSAGE = auto()
 
 @dataclass
 class ScriptObjectIssues:
@@ -110,6 +110,20 @@ class File(ScriptObject):
             exception = BadExtensionError(file_path)
             self.issues.append(exception=exception)
 
+class Message(ScriptObject):
+    def __init__(self, content, correlation_id):
+        super().__init__(to_verify=content)
+        self.correlation_id = correlation_id
+        self.data = ScriptContent(content=content)
+
+    def verify(self, to_verify: str):
+        if to_verify.strip() is not None:
+            return True
+        self.issues.append(ValueError("There is no content to be parsed in this script..."))
+        return False
+
+    def get_id(self):
+        return self.correlation_id
 
 def get_script_object(raw: Any, rtype: RepresentationType) -> ScriptObject:
     match rtype:
@@ -120,6 +134,17 @@ def get_script_object(raw: Any, rtype: RepresentationType) -> ScriptObject:
             if not new_file.is_verified:
                 return None
             return new_file
+        case RepresentationType.MESSAGE:
+            assert isinstance(raw, dict)
+
+            correlation_id = raw["correlation_id"]
+            content = raw["script_content"]
+            new_script_msg = Message(content=content, correlation_id=correlation_id)
+
+            if not new_script_msg.is_verified:
+                return None
+
+            return new_script_msg
         case _:
             ...
     return None

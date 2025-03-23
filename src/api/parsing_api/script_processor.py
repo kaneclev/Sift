@@ -2,11 +2,16 @@ import os
 
 from typing import List, Union
 
-from api.ipc_management.ipc_manager import IPC
-from api.ipc_management.ipc_options import ComTypes, IPCOptions, MsgType, Recievers
+from api.parsing_api.ipc_management.ipc_manager import IPC
+from api.parsing_api.ipc_management.ipc_options import (
+    ComTypes,
+    IPCOptions,
+    MsgType,
+    Recievers,
+)
 from file_operations.script_representations import ScriptObject
-from IR.ir_base import IntermediateRepresentation
-from IR.read_tree import TreeReader
+from language.IR.ir_base import IntermediateRepresentation
+from language.IR.read_tree import TreeReader
 from language.parsing.ast.script_tree import ScriptTree
 from language.parsing.parser import Parser
 
@@ -26,14 +31,14 @@ class ScriptProcessor:
         self.script: ScriptObject = script
         pass
 
-    def send_ir(self, ir: IntermediateRepresentation, options: Union[IPCOptions, List[IPCOptions]] = None):
+    def make_ir(self, ir: IntermediateRepresentation, options: Union[IPCOptions, List[IPCOptions]] = None):
         if not options:
             options = IPCOptions(com_type=ComTypes.FILESYS, msg_type=MsgType.JSON, recipient=Recievers.REQUEST_MANAGER)
         if not ir:
             ir = self.to_ir()
         if not isinstance(options, list):
             options = [options]
-        confirmations = IPC.send(ir_obj=ir, options=options)
+        confirmations = IPC.create(ir_obj=ir, options=options)
         return confirmations
 
     def parse(self) -> list[ScriptTree, IntermediateRepresentation]:

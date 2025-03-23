@@ -2,15 +2,15 @@ import os
 
 from typing import Dict, List
 
-from api.ipc_management.ipc_options import IPCOptions, MsgType, Recievers
-from IR.ir_base import IntermediateRepresentation
-from IR.ir_translator import RequestServiceFormats, RequestServiceFormatter
+from api.parsing_api.ipc_management.ipc_options import IPCOptions, MsgType, Recievers
+from language.IR.ir_base import IntermediateRepresentation
+from language.IR.ir_translator import RequestServiceFormats, RequestServiceFormatter
 from shared.utils.file_conversions import FileConverter, FileOpts, remove_suffix
 
 
 class IPC:
     @staticmethod
-    def send(ir_obj: IntermediateRepresentation,
+    def create(ir_obj: IntermediateRepresentation,
              options: List[IPCOptions]) -> List[Dict[MsgType, bytes]]:
         sent = []
         for opt in options:
@@ -20,7 +20,7 @@ class IPC:
                                form=opt.msg_type,
                                identifier=ir_obj.identifier)
             # NOTE: In the case where we are sending objects to the AMPQ, this is actually not sending; rather, it produces the bytes for the message that will be sent by a diff manager
-            sent.append({opt.msg_type: message})
+            sent.append({opt.msg_type: message, 'recipient': opt.recipient})
         return sent
 
     @staticmethod

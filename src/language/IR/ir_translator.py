@@ -3,12 +3,16 @@ from typing import List
 
 import orjson
 
-from api.ipc_management.target_handler import TargetHandler
-from IR.ir_base import IntermediateRepresentation
+from api.parsing_api.ipc_management.target_handler import TargetHandler
+from language.IR.ir_base import IntermediateRepresentation
 
 
 class RequestServiceFormats(Enum):
     JSON = auto()
+
+##################################
+#     RequestManager Format      #
+##################################
 class RequestServiceFormatter:
     def __init__(self, ir: IntermediateRepresentation):
         self.ir = ir
@@ -22,6 +26,7 @@ class RequestServiceFormatter:
                 return self._json_translation()
             case _:
                 raise ValueError(f"Unsupported format to translate to for the RequestService: {format}")
+
     def _json_translation(self) -> bytes:
         collection = {"targets": []}
         for targ in self.targ_handlers:

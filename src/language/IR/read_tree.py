@@ -1,7 +1,7 @@
 from typing import Dict, List, Tuple
 
-from IR.instructions.instruction import Instruction
-from IR.ir_base import IntermediateRepresentation
+from language.IR.instructions.instruction import Instruction
+from language.IR.ir_base import IntermediateRepresentation
 from language.parsing.ast.actions.action.action import Action
 from language.parsing.ast.script_tree import ScriptTree
 
