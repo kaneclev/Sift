@@ -3,6 +3,7 @@ package ipc
 import (
 	"encoding/json"
 	"log"
+	get "siftrequests/crawling"
 
 	"github.com/wagslane/go-rabbitmq"
 )
@@ -79,9 +80,7 @@ func ListenRCollectionsFromRabbitMQ(
 		conn.Close()
 		return err
 	}
-	// Similarly, we do not defer consumer.Close() here because we want this consumer running continuously.
 
-	// Run the consumer in a separate goroutine.
 	go func() {
 		err := consumer.Run(func(d rabbitmq.Delivery) rabbitmq.Action {
 			var col RCollection
@@ -91,6 +90,9 @@ func ListenRCollectionsFromRabbitMQ(
 				// Optionally, you could invoke a handler for errors or log them.
 				return rabbitmq.NackDiscard
 			}
+			// Get an option struct to call the getter with
+			crawler_opts := get.DefineCrawlerBehavior(&col, "", "", "")
+
 			// Call the provided handler function with the new collection.
 			handler(&col)
 			return rabbitmq.Ack

@@ -173,9 +173,6 @@ func (meta_wrapper *ResponseMetaWrapper) contentReceiver(content output.Result) 
 		fmt.Printf("parseResponse error: %v\n", err)
 		return
 	}
-	outMsg := ipc.GetReturnJSONFilename(meta_wrapper.CorrelationID)
 	// (Optional) Save the structured result to disk
-	if err := SaveParsedResponseToFile(parsedResp, outFile); err != nil {
-		fmt.Printf("Error saving parsed response: %v\n", err)
-	}
+	//TODO This needs to call the producer to send the message back.
 }
