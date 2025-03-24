@@ -1,6 +1,11 @@
-from typing import Union, List, Dict, Any
+from typing import Any, Dict, List, Union
 
-from api.parsing_api.ipc_management.ipc_options import ComTypes, IPCOptions, MsgType, Recievers
+from api.parsing_api.ipc_management.ipc_options import (
+    ComTypes,
+    IPCOptions,
+    MsgType,
+    Recievers,
+)
 from api.parsing_api.script_processor import ScriptProcessor
 from file_operations.script_representations import (
     RepresentationType,
@@ -8,9 +13,10 @@ from file_operations.script_representations import (
     get_script_object,
 )
 
+
 class Worker:
     """Worker class that handles parsing individual scripts."""
-    
+
     @staticmethod
     def parse(script, rtype: RepresentationType = RepresentationType.MESSAGE) -> List[Dict[str, Any]]:
         """
@@ -26,10 +32,10 @@ class Worker:
         script_obj: Union[ScriptObject, None] = get_script_object(script, rtype=rtype)
         if not script_obj:
             return []
-        
+
         return Worker._process_script_object(script_obj)
-    
-    
+
+
     @staticmethod
     def _process_script_object(script_obj: ScriptObject) -> List[Dict[str, Any]]:
         """
@@ -44,10 +50,10 @@ class Worker:
         # Process the script
         proc = ScriptProcessor(script_obj)
         ast, ir = proc.parse()
-        
+
         # Prepare messages for different services
         messages = []
-        
+
         # Create options for the Request Manager
         #! TODO: Remember; the IPC iterates over the ICPOptions, not the IR. In other words, for each set of IPCOptions defined, it will transform the IR in a different ways
         #   Therefore, the next step for communicating with other services besides the RequestManager will be to define ways of transforming the IR into a format that
@@ -57,10 +63,10 @@ class Worker:
             msg_type=MsgType.AMPQ,
             recipient=Recievers.REQUEST_MANAGER
         )
-        
+
         # Get messages for the Request Manager
         request_messages = proc.make_ir(ir, options=request_manager_opts)
         # NOTE: The make_ir method already inserts a 'recipient' key.
         messages.extend(request_messages)
-        
+
         return messages

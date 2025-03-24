@@ -10,9 +10,7 @@ import (
 var ENVRELPATH = "./.env"
 
 func main() {
-	// get program arguments
-	args := os.Args[1:]
-	setup_success := setup(args)
+	setup_success := load_env()
 	if !setup_success {
 		return
 	}
@@ -52,12 +50,7 @@ func getRequests() (ipc.RCollection, string) {
 	return *request_container, outfile
 }
 
-func setup(args []string) bool {
-	success := argHandler(args)
-	if !success {
-		fmt.Println("Couldn't register args. Discontinuing run. ")
-		return false
-	}
+func load_env() bool {
 	cwd, err := os.Getwd()
 	if err != nil {
 		fmt.Println("Error getting current working directory:", err)

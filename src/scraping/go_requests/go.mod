@@ -45,6 +45,7 @@ require (
 	github.com/projectdiscovery/retryabledns v1.0.94 // indirect
 	github.com/projectdiscovery/retryablehttp-go v1.0.101 // indirect
 	github.com/projectdiscovery/wappalyzergo v0.2.5 // indirect
+	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
 	github.com/refraction-networking/utls v1.6.7 // indirect
 	github.com/remeh/sizedwaitgroup v1.0.0 // indirect
 	github.com/rs/xid v1.5.0 // indirect
@@ -61,6 +62,7 @@ require (
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/rtred v0.1.2 // indirect
 	github.com/tidwall/tinyqueue v0.1.1 // indirect
+	github.com/wagslane/go-rabbitmq v0.15.0 // indirect
 	github.com/weppos/publicsuffix-go v0.30.1-0.20230422193905-8fecedd899db // indirect
 	github.com/ysmood/fetchup v0.2.3 // indirect
 	github.com/ysmood/goob v0.4.0 // indirect

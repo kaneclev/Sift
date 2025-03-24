@@ -113,14 +113,14 @@ func DefineCrawlerBehavior(url_alias_container *ipc.RCollection, proxy, response
 }
 
 type ResponseMetaWrapper struct {
-	OutFile string
-	Alias   string
+	CorrelationID string
+	Alias         string
 }
 
 func GetContent(options *types.Options, outfile string, collection *ipc.RCollection, on_results types.OnResultCallback) {
 	wrapper := ResponseMetaWrapper{
-		OutFile: outfile,
-		Alias:   "",
+		CorrelationID: outfile,
+		Alias:         "",
 	}
 	if on_results == nil {
 		options.OnResult = wrapper.contentReceiver
@@ -156,12 +156,6 @@ func GetContent(options *types.Options, outfile string, collection *ipc.RCollect
 	wg.Wait()
 }
 
-/*
-TODO:
-  - OFFER OTHER WAYS OF COMMUNICATING THE RESULT BEYOND JUST SAVING AS JSON.
-  - This could be implemented as multiple functions for on_results, and they are called differently depending on the
-  - args passed to this executable.
-*/
 func (meta_wrapper *ResponseMetaWrapper) contentReceiver(content output.Result) {
 	if !content.HasResponse() {
 		fmt.Printf("\nCouldn't resolve a response for %s\n", content.Request.URL)
@@ -179,7 +173,7 @@ func (meta_wrapper *ResponseMetaWrapper) contentReceiver(content output.Result) 
 		fmt.Printf("parseResponse error: %v\n", err)
 		return
 	}
-	outFile := ipc.GetReturnJSONFilename(meta_wrapper.OutFile)
+	outMsg := ipc.GetReturnJSONFilename(meta_wrapper.CorrelationID)
 	// (Optional) Save the structured result to disk
 	if err := SaveParsedResponseToFile(parsedResp, outFile); err != nil {
 		fmt.Printf("Error saving parsed response: %v\n", err)

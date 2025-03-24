@@ -6,22 +6,11 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "lark>=1.2.2",
-    "pytest-cov>=6.0.0",
     "pytest>=8.3.4",
-    "ruff>=0.8.6",
-    "pytest-check>=2.4.1",
     "hypothesis>=6.125.1",
-    "ujson>=5.10.0",
     "orjson>=3.10.15",
-    "scrapling>=0.2.93",
-    "curl-cffi>=0.7.4",
-    "selenium>=4.28.1",
     "python-dotenv>=1.0.1",
-    "undetected-chromedriver>=3.5.5",
-    "selenium-stealth>=1.0.6",
-    "line-profiler>=4.2.0",
     "lark-cython>=0.0.16",
-    "nuitka>=2.6.8",
     "pika>=1.3.2",
 ]
 

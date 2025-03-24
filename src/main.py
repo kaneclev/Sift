@@ -4,7 +4,6 @@ import signal
 import sys
 import os
 import threading
-import time
 
 from prep import prep  # noqa: F401
 from api.parsing_api.coordinator import Coordinator
