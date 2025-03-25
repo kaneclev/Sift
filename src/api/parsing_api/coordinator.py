@@ -5,7 +5,7 @@ import time
 from typing import Any, Dict, List
 
 from api.parsing_api.ipc_management.broker import HOST, PASS, PORT, USER, MessageBroker
-from api.parsing_api.ipc_management.ipc_options import Recievers
+from api.parsing_api.ipc_management.ipc_manager import Recipients
 from api.parsing_api.worker import RepresentationType, Worker
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,6 @@ class Coordinator:
         # Regular queues
         self.broker.declare_queue(self.script_queue)
         self.broker.declare_queue(self.request_queue)
-        self.broker.declare_queue(self.other_service_queue)
 
         # Error queue
         self.broker.declare_queue(self.error_queue)
@@ -90,9 +89,8 @@ class Coordinator:
 
             # Acknowledge the message
             self.broker.acknowledge(channel, delivery_tag)
-
         except Exception as e:
-            logger.error(f"Error processing script: {e}")
+            logger.error(f"Error processing script: {e}, {e.__context__}")
 
             # Publish error message
             error_message = {
@@ -101,23 +99,21 @@ class Coordinator:
                 'correlation_id': correlation_id
             }
             self.broker.publish(self.error_queue, error_message, correlation_id)
-
-            # Reject the message (don't requeue if it's a validation error)
-            requeue = not isinstance(e, ValueError)
-            self.broker.reject(channel, delivery_tag, requeue=requeue)
-
+            self.broker.reject(channel, delivery_tag, requeue=False)
 
     def _route_results(self, results: List[Dict[str, Any]], correlation_id: str):
         """Route parsed results to appropriate service queues."""
         for result in results:
             # Determine the target service based on the result
             recipient = result.get('recipient')
+            message = result.get('message')
 
-            if recipient == Recievers.REQUEST_MANAGER:
-                self.broker.publish(self.request_queue, result, correlation_id)
+            if recipient == Recipients.REQUEST_MANAGER.value:
+                self.broker.publish(self.request_queue, message, correlation_id)
             else:
+                print(f'real one: {recipient}')
                 # Default to the other service queue for any other recipients
-                self.broker.publish(self.other_service_queue, result, correlation_id)
+                self.broker.publish(self.other_service_queue, message, correlation_id)
 
     @staticmethod
     def coordinate_parsing(message: Dict):

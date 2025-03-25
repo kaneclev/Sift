@@ -2,7 +2,10 @@ module siftrequests
 
 go 1.24.1
 
-require github.com/projectdiscovery/gologger v1.1.49
+require (
+	github.com/projectdiscovery/gologger v1.1.49 // indirect
+	github.com/wagslane/go-rabbitmq v0.15.0
+)
 
 require (
 	github.com/BishopFox/jsluice v0.0.0-20240110145140-0ddfab153e06 // indirect
@@ -62,7 +65,6 @@ require (
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/rtred v0.1.2 // indirect
 	github.com/tidwall/tinyqueue v0.1.1 // indirect
-	github.com/wagslane/go-rabbitmq v0.15.0 // indirect
 	github.com/weppos/publicsuffix-go v0.30.1-0.20230422193905-8fecedd899db // indirect
 	github.com/ysmood/fetchup v0.2.3 // indirect
 	github.com/ysmood/goob v0.4.0 // indirect

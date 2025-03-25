@@ -377,16 +377,6 @@ class Filter(Action):
                         raise TypeError(f"Expected the text filter dict to have the key, contains_text, but here it is instead: {text_item}")
         else:
             raise TypeError(f'Expected the text filter to be of type list, instead found it to be of type: {value}')
-        for k in result:
-            if isinstance(k, dict):
-                if k.get('options', None) is not None:
-                    print(f'Here: {result}, value: {value}')
-                    exit()
-        if isinstance(result[0], dict):
-            if result[0].get('contains', None) is None:
-                print(f'Here: {result}, value: {value}')
-                exit()
-
         return result
 
     @staticmethod
@@ -417,9 +407,6 @@ class Filter(Action):
                         result[attr_filter_key]["contains"] = contains_options
                 if wildcard is not AttributeValueOptions.DNE:
                     result[attr_filter_key] = []
-                if not result:
-                    print(f'attr val: {attr_filter_val}, pair: {relevant_pair}')
-                    exit()
             elif isinstance(attr_filter_val, str):
                 result[attr_filter_key] = attr_filter_val
             else:

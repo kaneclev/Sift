@@ -18,10 +18,10 @@ build: $(BUILD_DIR)
 	cd $(PROJ_DIR) && go build -o ../../../$(BUILD_DIR)/$(APP_NAME)$(EXE_EXT)
 
 run: build
-	$(BUILD_DIR)/$(APP_NAME)$(EXE_EXT) --finput reddit --match-type loose
+	$(BUILD_DIR)/$(APP_NAME)$(EXE_EXT) 
 
 exec:
-	$(BUILD_DIR)/$(APP_NAME)$(EXE_EXT) --finput ebay --match-type loose
+	$(BUILD_DIR)/$(APP_NAME)$(EXE_EXT) 
 
 clean:
 	rm -rf $(BUILD_DIR)

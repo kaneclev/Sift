@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	get "siftrequests/crawling"
 	"siftrequests/ipc"
 )
 
@@ -14,16 +13,17 @@ func main() {
 	if !setup_success {
 		return
 	}
+	fmt.Printf("\n PRENIS")
+	connStr := os.Getenv("RABBITMQ_GOREQUESTS_CONNSTRING")
+	queueName := os.Getenv("RABBITMQ_PARSE_REQUEST_QUEUENAME")
+	if len(connStr) == 0 {
+		fmt.Printf("\nNo connection string was found in the environment for RabbitMQ.\n")
+		return
+	}
+	ipc.ListenForTargets(connStr, queueName)
 
 	// TODO: this aggregates requests from multiple files, but then saves them all under a single filename
-	beginScraping(&requests_encoding_collection, outfile)
 
-}
-
-func beginScraping(collection_to_use *ipc.RCollection, outfile string) {
-	options := get.DefineCrawlerBehavior(collection_to_use, "", "", "")
-	// todo: nil will have to change to different callable response handlers as we expand the number of ways to communicate back to the caller.
-	consumer.ListenRCollectionsFromRabbitMQ(options, outfile, collection_to_use, nil)
 }
 
 func load_env() bool {

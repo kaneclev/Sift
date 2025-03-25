@@ -1,7 +1,5 @@
 from enum import Enum, auto
-from typing import List
-
-import orjson
+from typing import Dict, List
 
 from api.parsing_api.ipc_management.target_handler import TargetHandler
 from language.IR.ir_base import IntermediateRepresentation
@@ -23,12 +21,12 @@ class RequestServiceFormatter:
     def translate(self, format: RequestServiceFormats):
         match format:
             case RequestServiceFormats.JSON:
-                return self._json_translation()
+                return self._dict_translate()
             case _:
                 raise ValueError(f"Unsupported format to translate to for the RequestService: {format}")
 
-    def _json_translation(self) -> bytes:
+    def _dict_translate(self) -> Dict[str, str]:
         collection = {"targets": []}
         for targ in self.targ_handlers:
             collection["targets"].append(targ.to_dict())
-        return orjson.dumps(collection)
+        return collection

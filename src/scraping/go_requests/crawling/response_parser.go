@@ -40,11 +40,11 @@ type BodyInfo struct {
 	// If you wanted to parse out links, Title, etc., you might add fields here.
 }
 
-func ParseResponse(resp *navigation.Response, for_alias string) (ParsedResponse, error) {
+func ParseResponse(resp *navigation.Response, alias string) (ParsedResponse, error) {
 	// 1) Basic metadata grouping
 	basic := BasicInfo{
 		URL:           resp.Resp.Request.URL.String(),
-		Alias:         for_alias,
+		Alias:         alias,
 		StatusCode:    resp.StatusCode,
 		ContentLength: resp.ContentLength,
 	}

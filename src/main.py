@@ -23,9 +23,6 @@ stop_event = threading.Event()
 
 def signal_handler(sig, frame):
     """Handle process termination signals."""
-    logger.info("Received shutdown signal, cleaning up...")
-    if coordinator:
-        coordinator.stop_consuming()
     stop_event.set()  # Unblocks the main thread
     sys.exit(0)
 

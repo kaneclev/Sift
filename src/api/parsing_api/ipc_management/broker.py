@@ -68,7 +68,7 @@ class MessageBroker:
             correlation_id=correlation_id,
             content_type='application/json'
         )
-
+        print(message)
         message_body = json.dumps(message)
 
         try:

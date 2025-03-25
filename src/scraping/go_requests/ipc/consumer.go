@@ -1,66 +1,15 @@
 package ipc
 
 import (
-	"encoding/json"
+	"fmt"
 	"log"
 	get "siftrequests/crawling"
+	"siftrequests/ipc_structs"
 
 	"github.com/wagslane/go-rabbitmq"
 )
 
-type RequestEncoding struct {
-	URL   string `json:"url"`
-	Alias string `json:"alias"`
-}
-type RCollection struct {
-	Requests []RequestEncoding
-}
-type TargetsWrapper struct {
-	Targets []RequestEncoding `json:"targets"`
-}
-
-func (col *RCollection) GetURLs() []string {
-	urls := make([]string, 0, len(col.Requests))
-	for _, req := range col.Requests {
-		urls = append(urls, req.URL)
-	}
-	return urls
-}
-func (col *RCollection) MapURLsToAliases(urls []string) map[string]string {
-	aliasMap := make(map[string]string)
-
-	// Build a lookup table for URL -> Alias from the collection.
-	lookup := make(map[string]string)
-	for _, req := range col.Requests {
-		lookup[req.URL] = req.Alias
-	}
-
-	// For each URL in the provided slice, check if an alias exists.
-	for _, url := range urls {
-		if alias, ok := lookup[url]; ok {
-			aliasMap[url] = alias
-		}
-	}
-
-	return aliasMap
-}
-func (col *RCollection) GetAliasByURL(url string) string {
-	for _, req := range col.Requests {
-		if req.URL == url {
-			return req.Alias
-		}
-	}
-	return ""
-}
-
-// ListenRCollectionsFromRabbitMQ establishes a persistent connection to RabbitMQ and
-// continuously listens for new messages. Each time a message is received, it is unmarshaled
-// into an RCollection and passed to the provided handler function for further processing.
-// This function will return an error if the initial connection or consumer setup fails.
-func ListenRCollectionsFromRabbitMQ(
-	connStr, queueName, routingKey, exchange string,
-	handler func(*RCollection),
-) error {
+func ListenForTargets(connStr, queueName string) error {
 	// Establish a connection to RabbitMQ.
 	conn, err := rabbitmq.NewConn(connStr, rabbitmq.WithConnectionOptionsLogging)
 	if err != nil {
@@ -72,37 +21,43 @@ func ListenRCollectionsFromRabbitMQ(
 	consumer, err := rabbitmq.NewConsumer(
 		conn,
 		queueName,
-		rabbitmq.WithConsumerOptionsRoutingKey(routingKey),
-		rabbitmq.WithConsumerOptionsExchangeName(exchange),
-		rabbitmq.WithConsumerOptionsExchangeDeclare,
+		rabbitmq.WithConsumerOptionsQueueDurable,
 	)
+	fmt.Printf("\nNew consumer: %s", queueName)
 	if err != nil {
+		fmt.Printf("\nError when making connection: %s\n", err.Error())
 		conn.Close()
 		return err
 	}
 
-	go func() {
-		err := consumer.Run(func(d rabbitmq.Delivery) rabbitmq.Action {
-			var col RCollection
-			// Unmarshal the message body into an RCollection.
-			if err := json.Unmarshal(d.Body, &col); err != nil {
-				log.Printf("failed to unmarshal JSON: %v", err)
-				// Optionally, you could invoke a handler for errors or log them.
-				return rabbitmq.NackDiscard
-			}
-			// Get an option struct to call the getter with
-			crawler_opts := get.DefineCrawlerBehavior(&col, "", "", "")
-
-			// Call the provided handler function with the new collection.
-			handler(&col)
-			return rabbitmq.Ack
-		})
+	// Call consumer.Run directly. This call will block and continuously wait for new messages.
+	err = consumer.Run(func(d rabbitmq.Delivery) rabbitmq.Action {
+		// Unmarshal the message body into an RCollection.
+		targets, err := ipc_structs.UnmarshalTargets(d.Body)
 		if err != nil {
-			log.Printf("consumer run error: %v", err)
+			// If unmarshalling fails, log the error and Nack the message.
+			fmt.Printf("\nError unmarshalling data: %s\n", string(d.Body))
+			return rabbitmq.NackDiscard
 		}
-		// If consumer.Run ever exits, close the connection.
-		conn.Close()
-	}()
 
-	return nil
+		// Get options for the crawler behavior
+		crawlerOpts := get.DefineCrawlerBehavior(targets, "", "")
+		results := get.GetContent(crawlerOpts, targets)
+
+		// Process results as they arrive.
+		for result := range results {
+			fmt.Printf("\nRetrieved content for %s", result.Alias)
+		}
+
+		// After processing, acknowledge the message.
+		return rabbitmq.Ack
+	})
+
+	if err != nil {
+		log.Printf("consumer run error: %v", err)
+	}
+
+	// If consumer.Run exits, close the connection.
+	conn.Close()
+	return err
 }

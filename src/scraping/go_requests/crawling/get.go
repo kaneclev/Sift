@@ -3,61 +3,16 @@ package get
 import (
 	"fmt"
 	"math"
-	"math/rand"
 	"os"
-	"siftrequests/ipc"
+	"siftrequests/ipc_structs"
+	utils "siftrequests/utils"
 	"strconv"
 	"sync"
 
-	"github.com/projectdiscovery/gologger"
 	"github.com/projectdiscovery/katana/pkg/engine/standard"
 	"github.com/projectdiscovery/katana/pkg/output"
 	"github.com/projectdiscovery/katana/pkg/types"
 )
-
-func GetMaxNumProxies() int {
-	max_num := os.Getenv("MAX_PROXIES")
-	if max_num == "" {
-		fmt.Printf("\n(!) Can't find field 'MAX_PROXIES' in the environment.")
-		return -1
-	}
-	max_num_int, err := strconv.Atoi(max_num)
-	if err != nil {
-		fmt.Printf("\nCannot convert 'MAX_PROXIES' to an integer; given str to convert: %s, error: %s\n", max_num, err.Error())
-		return -1
-	}
-	return max_num_int
-}
-
-func GetProxies(num int) []string {
-	prox_prepend := "PROX"
-	if num < 0 {
-		num = GetMaxNumProxies()
-		if num < 0 {
-			return nil
-		}
-	}
-	proxlist := make([]string, num)
-	for i := range num {
-		if i == 0 {
-			continue
-		}
-		currproxstring := prox_prepend + strconv.Itoa(i)
-		prox := os.Getenv(currproxstring)
-		if len(prox) == 0 {
-			fmt.Printf("\n Warning: no proxy associated with key %s\n", currproxstring)
-			continue
-		}
-		proxlist = append(proxlist, prox)
-	}
-	return proxlist
-}
-
-func GetRandProxy(plist []string) string {
-	// Generate a random integer [0..99].
-	randomInt := rand.Intn(len(plist))
-	return plist[randomInt]
-}
 
 func getParalellLimit() int {
 	env_par_limit := os.Getenv("PARALELL_LIMIT")
@@ -72,7 +27,7 @@ func getParalellLimit() int {
 	return parallel_limit
 }
 
-func DefineCrawlerBehavior(url_alias_container *ipc.RCollection, proxy, response_dir, engine string) *types.Options {
+func DefineCrawlerBehavior(url_alias_container *ipc_structs.Targets, response_dir, engine string) *types.Options {
 	if url_alias_container == nil {
 		fmt.Printf("\nCannot instantiate options for a crawler when the url_alias_container is nil (no urls to crawl)\n")
 		return nil
@@ -81,15 +36,6 @@ func DefineCrawlerBehavior(url_alias_container *ipc.RCollection, proxy, response
 		engine = "rod"
 	}
 
-	if proxy == "" {
-
-		proxy_options := GetProxies(-1)
-		if proxy_options != nil {
-			proxy = GetRandProxy(proxy_options)
-		} else {
-			return nil
-		}
-	}
 	parallel_limit := getParalellLimit()
 	if parallel_limit < 0 {
 		return nil
@@ -112,67 +58,128 @@ func DefineCrawlerBehavior(url_alias_container *ipc.RCollection, proxy, response
 	return defined_opts
 }
 
-type ResponseMetaWrapper struct {
-	CorrelationID string
+type ReceivedContent struct {
+	URL           string
 	Alias         string
+	CorrelationID string
+	Response      ParsedResponse
 }
 
-func GetContent(options *types.Options, outfile string, collection *ipc.RCollection, on_results types.OnResultCallback) {
-	wrapper := ResponseMetaWrapper{
-		CorrelationID: outfile,
-		Alias:         "",
-	}
-	if on_results == nil {
-		options.OnResult = wrapper.contentReceiver
-	} else {
-		options.OnResult = on_results
-	}
+func GetContent(options *types.Options, targets *ipc_structs.Targets) chan ReceivedContent {
 	options.ConfigureOutput()
-	crawlerOptions, crawlopterror := types.NewCrawlerOptions(options)
-	if crawlopterror != nil {
-		fmt.Printf("\nCannot instantiate crawler options  due to unexpected error: %s \n", crawlopterror.Error())
-		return
-	}
-	defer crawlerOptions.Close()
-	crawler, err := standard.New(crawlerOptions)
-	if err != nil {
-		gologger.Fatal().Msg(err.Error())
-	}
-	defer crawler.Close()
-	var wg sync.WaitGroup
-	// TODO: Implement the parallel limit here to avoid running an exceeding num of requests.
-	for _, url := range options.URLs {
-		wg.Add(1)
-		go func(u string) {
-			defer wg.Done()
-			wrapper.Alias = collection.GetAliasByURL(u)
 
-			err := crawler.Crawl(u)
-			if err != nil {
-				gologger.Warning().Msgf("Error crawling %s: %v", u, err)
-			}
-		}(url)
+	// Create a queue of items to process
+	request_queue := make([]ReceivedContent, 0, len(targets.Targets))
+	for _, targ := range targets.Targets {
+		request_queue = utils.Push(request_queue, ReceivedContent{
+			URL:           targ.URL,
+			Alias:         targ.Alias,
+			CorrelationID: targets.CorrelationID,
+			Response:      ParsedResponse{},
+		})
 	}
-	wg.Wait()
+
+	numWorkers := options.Parallelism
+
+	// Create channels for worker coordination
+	jobs := make(chan ReceivedContent, len(request_queue))
+	results := make(chan ReceivedContent, len(request_queue))
+
+	// Create a wait group to wait for all workers to finish
+	var wg sync.WaitGroup
+
+	// Start workers
+	for i := 0; i < numWorkers; i++ {
+		wg.Add(1)
+		go worker(i, options, jobs, results, &wg)
+	}
+
+	// Send jobs to workers
+	go func() {
+		for _, item := range request_queue {
+			jobs <- item
+		}
+		close(jobs) // Close jobs channel when all jobs are sent
+	}()
+
+	// Collect results in a separate goroutine
+	go func() {
+		wg.Wait()      // Wait for all workers to finish
+		close(results) // Close results channel when all workers are done
+	}()
+
+	// return the results channel. This channel returned is NOT expected to contain all of the results yet; the caller will get the channel, and will see it gradually fill.
+	return results
 }
 
-func (meta_wrapper *ResponseMetaWrapper) contentReceiver(content output.Result) {
-	if !content.HasResponse() {
-		fmt.Printf("\nCouldn't resolve a response for %s\n", content.Request.URL)
-		return
-	}
+func worker(id int, options *types.Options, jobs <-chan ReceivedContent, results chan<- ReceivedContent, wg *sync.WaitGroup) {
+	defer wg.Done()
 
-	fmt.Printf("\nResult recieved at %s\n", content.Timestamp.String())
-	if content.Error != "" {
-		fmt.Printf("\nError in result: %s\n", content.Error)
-	}
+	for job := range jobs {
+		fmt.Printf("\nWorker %d processing URL: %s\n", id, job.URL)
 
-	// Perform the parse
-	parsedResp, err := ParseResponse(content.Response, meta_wrapper.Alias)
-	if err != nil {
-		fmt.Printf("parseResponse error: %v\n", err)
-		return
+		// Create a copy of options for this specific job
+		jobOptions := *options
+
+		// Set the content receiver for this job
+		jobOptions.OnResult = func(content output.Result) {
+			if !content.HasResponse() {
+				fmt.Printf("\nWorker %d: Couldn't resolve a response for %s\n", id, content.Request.URL)
+				return
+			}
+
+			fmt.Printf("\nWorker %d: Result received at %s\n", id, content.Timestamp.String())
+			if content.Error != "" {
+				fmt.Printf("\nWorker %d: Error in result: %s\n", id, content.Error)
+			}
+
+			// Perform the parse
+			parsedResp, err := ParseResponse(content.Response, job.Alias)
+			if err != nil {
+				fmt.Printf("\nWorker %d: parseResponse error: %v\n", id, err)
+				return
+			}
+
+			job.Response = parsedResp
+			fmt.Printf("\nWorker %d: Found response with length %d bytes\n", id, len(parsedResp.BodyInfo.Text))
+
+			// Send the completed job to results channel
+			results <- job
+		}
+
+		// Get a proxy for this job
+		proxy_list := utils.GetProxies(-1)
+		if proxy_list != nil {
+			proxy := utils.GetRandProxy(proxy_list)
+			if len(proxy) == 0 {
+				fmt.Printf("\nWorker %d: While there were proxies found, no random proxy was available... Continuing\n", id)
+			}
+			jobOptions.Proxy = proxy
+		} else {
+			fmt.Printf("\nWorker %d: No proxies available for some reason... Continuing\n", id)
+			continue
+		}
+
+		// Create crawler options
+		crawlerOptions, crawlopterror := types.NewCrawlerOptions(&jobOptions)
+		if crawlopterror != nil {
+			fmt.Printf("\nWorker %d: Cannot instantiate crawler options due to unexpected error: %s\n", id, crawlopterror.Error())
+			continue
+		}
+
+		// Create crawler
+		crawler, err := standard.New(crawlerOptions)
+		if err != nil {
+			fmt.Printf("\nWorker %d: Error creating crawler: %s\n", id, err.Error())
+			continue
+		}
+
+		// Crawl the URL
+		crawl_err := crawler.Crawl(job.URL)
+		if crawl_err != nil {
+			fmt.Printf("\nWorker %d: Error crawling %s: %v\n", id, job.URL, crawl_err)
+		}
+
+		crawlerOptions.Close()
 	}
-	// (Optional) Save the structured result to disk
-	//TODO This needs to call the producer to send the message back.
 }
