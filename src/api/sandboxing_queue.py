@@ -42,9 +42,13 @@ def read_file(fname: str) -> str:
 if __name__ == "__main__":
     # For testing, we use a static script content.
     # You could also extend this script to accept command line arguments if needed.
-    sname = "siftscripts/ebay_use_case.sift"
-    test_script = read_file(sname)
-    if test_script is None or len(test_script) < 1:
-        print(f"Couldnt read content from file {sname}")
-    else:
-        publish_script(test_script)
+    #sname = "siftscripts/ujtest.sift"
+    #test_script = read_file(sname)
+    scripts = ["siftscripts/ujtest.sift", "siftscripts/jellycat.sift", "siftscripts/ebay_use_case.sift", "siftscripts/reddit_test.sift"]
+    for s in scripts:
+        str_s = read_file(s)
+        publish_script(str_s)
+    #if test_script is None or len(test_script) < 1:
+    #    print(f"Couldnt read content from file {sname}")
+    #else:
+    #    publish_script(test_script)

@@ -22,6 +22,7 @@ func ListenForTargets(connStr, queueName string) error {
 		conn,
 		queueName,
 		rabbitmq.WithConsumerOptionsQueueDurable,
+		rabbitmq.WithConsumerOptionsConcurrency(5),
 	)
 	fmt.Printf("\nNew consumer: %s", queueName)
 	if err != nil {
@@ -32,6 +33,7 @@ func ListenForTargets(connStr, queueName string) error {
 
 	// Call consumer.Run directly. This call will block and continuously wait for new messages.
 	err = consumer.Run(func(d rabbitmq.Delivery) rabbitmq.Action {
+		// NOTE: This is the 'handler'.
 		// Unmarshal the message body into an RCollection.
 		targets, err := ipc_structs.UnmarshalTargets(d.Body)
 		if err != nil {
