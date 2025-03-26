@@ -1,8 +1,10 @@
 package ipc
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	get "siftrequests/crawling"
 	"siftrequests/ipc_structs"
 
@@ -30,28 +32,48 @@ func ListenForTargets(connStr, queueName string) error {
 		conn.Close()
 		return err
 	}
+	debug_flag := os.Getenv("REQUESTER_DEBUG")
+	var is_debug = false
+	if debug_flag == "1" {
+		is_debug = true
+	}
+
+	parsedResultChan := make(chan get.ReceivedContent)
+	go func() {
+		if is_debug {
+			for result := range parsedResultChan {
+				fmt.Printf("\n[Writer] Received result for %s", result.Alias)
+				file := "bin/request_collections/" + result.Alias + ".json"
+				wd, _ := os.Getwd()
+				fmt.Printf("\n%s\n", wd)
+				err := WriteParsedResponseToFile(result.Response, file)
+				if err != nil {
+					fmt.Printf("Error writing result: %v\n", err)
+				}
+
+			}
+		}
+	}()
 
 	// Call consumer.Run directly. This call will block and continuously wait for new messages.
 	err = consumer.Run(func(d rabbitmq.Delivery) rabbitmq.Action {
-		// NOTE: This is the 'handler'.
-		// Unmarshal the message body into an RCollection.
+		fmt.Println("[Handler] New message received")
 		targets, err := ipc_structs.UnmarshalTargets(d.Body)
 		if err != nil {
-			// If unmarshalling fails, log the error and Nack the message.
-			fmt.Printf("\nError unmarshalling data: %s\n", string(d.Body))
+			fmt.Println("Unmarshal error:", err)
 			return rabbitmq.NackDiscard
 		}
 
-		// Get options for the crawler behavior
 		crawlerOpts := get.DefineCrawlerBehavior(targets, "", "")
 		results := get.GetContent(crawlerOpts, targets)
 
-		// Process results as they arrive.
-		for result := range results {
-			fmt.Printf("\nRetrieved content for %s", result.Alias)
-		}
+		// Forward each result to the outer channel
+		go func() {
+			for result := range results {
+				parsedResultChan <- result
+			}
+		}()
 
-		// After processing, acknowledge the message.
 		return rabbitmq.Ack
 	})
 
@@ -62,4 +84,20 @@ func ListenForTargets(connStr, queueName string) error {
 	// If consumer.Run exits, close the connection.
 	conn.Close()
 	return err
+}
+
+func WriteParsedResponseToFile(response get.ParsedResponse, path string) error {
+	// Marshal the struct to pretty JSON
+	jsonBytes, err := json.MarshalIndent(response, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal response: %w", err)
+	}
+
+	// Write to file
+	err = os.WriteFile(path, jsonBytes, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write file: %w", err)
+	}
+
+	return nil
 }

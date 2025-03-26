@@ -8,6 +8,7 @@ from api.parsing_api.ipc_management.ipc_manager import (
 )
 from file_operations.script_representations import ScriptObject
 from language.IR.ir_base import IntermediateRepresentation
+from language.IR.ir_format_conversion import IRConverter
 from language.IR.read_tree import TreeReader
 from language.parsing.ast.script_tree import ScriptTree
 from language.parsing.parser import Parser
@@ -38,10 +39,16 @@ class ScriptProcessor:
         return confirmations
 
     def parse(self) -> list[ScriptTree, IntermediateRepresentation]:
+        is_debug = False
         if not self.script.is_verified:
             print("\nCannot begin to parse script.")
             self.script.issues.describe()
             return []
         ast = Parser(self.script.get_content()).parse_content_to_tree()
         ir = TreeReader.to_ir(ast, identifier=self.script.get_id())
+        if (flag := os.environ.get('PARSER_DEBUG', None)) is not None:
+            if flag == "1":
+                is_debug = True
+        if is_debug:
+            IRConverter.to_json(ir_obj=ir)
         return [ast, ir]

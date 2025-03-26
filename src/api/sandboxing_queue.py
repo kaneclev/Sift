@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 
-from api.parsing_api.ipc_management.broker import MessageBroker
+from shared.broker import MessageBroker
 
 # Setup logging
 logging.basicConfig(
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     # You could also extend this script to accept command line arguments if needed.
     #sname = "siftscripts/ujtest.sift"
     #test_script = read_file(sname)
-    scripts = ["siftscripts/ujtest.sift", "siftscripts/jellycat.sift", "siftscripts/ebay_use_case.sift", "siftscripts/reddit_test.sift"]
+    scripts = ["siftscripts/jellycat.sift"]
     for s in scripts:
         str_s = read_file(s)
         publish_script(str_s)

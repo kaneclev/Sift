@@ -41,17 +41,22 @@ func DefineCrawlerBehavior(url_alias_container *ipc_structs.Targets, response_di
 		return nil
 	}
 	defined_opts := &types.Options{
-		URLs:                url_alias_container.GetURLs(),
-		Strategy:            "depth-first",
-		Verbose:             true,
-		BodyReadSize:        math.MaxInt,
-		Timeout:             10,
-		Parallelism:         parallel_limit,
-		RateLimit:           150,
-		Headless:            true,
-		HeadlessNoIncognito: true,
-		TechDetect:          true,
-		XhrExtraction:       true,
+		URLs:                   url_alias_container.GetURLs(),
+		Strategy:               "depth-first",
+		Verbose:                true,
+		BodyReadSize:           math.MaxInt,
+		Timeout:                10,
+		Parallelism:            parallel_limit,
+		RateLimit:              150,
+		Headless:               true,
+		ShowBrowser:            true,
+		TechDetect:             true,
+		XhrExtraction:          true,
+		AutomaticFormFill:      true,
+		FormExtraction:         true,
+		ScrapeJSResponses:      true,
+		ScrapeJSLuiceResponses: true,
+		Delay:                  2,
 	}
 
 	fmt.Printf("\nDefined options. \n")
@@ -134,7 +139,7 @@ func worker(id int, options *types.Options, jobs <-chan ReceivedContent, results
 			}
 
 			// Perform the parse
-			parsedResp, err := ParseResponse(content.Response, job.Alias)
+			parsedResp, err := ParseResponse(content.Response, job.Alias, job.CorrelationID)
 			if err != nil {
 				fmt.Printf("\nWorker %d: parseResponse error: %v\n", id, err)
 				return

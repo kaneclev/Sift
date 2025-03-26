@@ -26,6 +26,7 @@ type BasicInfo struct {
 	URL           string `json:"url"`
 	Alias         string `json:"alias"`
 	StatusCode    int    `json:"status_code"`
+	CorrelationID string `json:"correlation_id"`
 	ContentLength int64  `json:"content_length"`
 }
 
@@ -40,12 +41,13 @@ type BodyInfo struct {
 	// If you wanted to parse out links, Title, etc., you might add fields here.
 }
 
-func ParseResponse(resp *navigation.Response, alias string) (ParsedResponse, error) {
+func ParseResponse(resp *navigation.Response, alias string, correlation_id string) (ParsedResponse, error) {
 	// 1) Basic metadata grouping
 	basic := BasicInfo{
 		URL:           resp.Resp.Request.URL.String(),
 		Alias:         alias,
 		StatusCode:    resp.StatusCode,
+		CorrelationID: correlation_id,
 		ContentLength: resp.ContentLength,
 	}
 

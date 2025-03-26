@@ -1,4 +1,4 @@
-targets = [jelly: "https://us.jellycat.com/animals"]
+targets = [jelly: "https://www.reddit.com/r/Destiny/comments/1jkaz7d/the_atlantic_publishes_another_article_with/"]
 
 jelly: {
     extract where tag "a" and attribute "aria-label": contains "Timmy Turtle" -> prioce;

@@ -1,3 +1,4 @@
+import json
 import pickle
 
 from dataclasses import asdict
@@ -12,7 +13,7 @@ from shared.utils.file_conversions import FileConverter, FileOpts
 
 class IRConverter(FileConverter):
     class ConversionOptions(Enum):
-        SAVE_LOCATION = "../IRConversions"
+        SAVE_LOCATION = "IRConversions"
         SAVE_FILE = True
         DISTINCT_FILENAME = None
 
@@ -29,7 +30,8 @@ class IRConverter(FileConverter):
         options = IRConverter.update_options(options_to_update=options, base_options=IRConverter().default_options)
         json_bytes = orjson.dumps(asdict(ir_obj))
         to_dir = IRConverter().get_opt(IRConverter.ConversionOptions.SAVE_LOCATION)
-        IRConverter.save_as(save_to_dir=to_dir, raw_basename=ir_obj.file_name, ftype=FileOpts.JSON, object_to_save=json_bytes)
+        basename = ir_obj.identifier + ".json"
+        IRConverter.save_as(save_to_dir=to_dir, raw_basename=basename, ftype=FileOpts.JSON, object_to_save=json_bytes)
     @staticmethod
     def to_pickle(ir_obj: IntermediateRepresentation, options: Dict[ConversionOptions, Union[str, bool]] = None) -> None:
         if not options:
@@ -37,7 +39,7 @@ class IRConverter(FileConverter):
         options = IRConverter.update_options(options_to_update=options, base_options=IRConverter().default_options)
         pkl_bytes = pickle.dumps(asdict(ir_obj))
         if options.get(IRConverter.ConversionOptions.SAVE_FILE) is True:
-            file_name = ir_obj.file_name
+            file_name = ir_obj.identifier + ".pkl"
             if (distinct_file_name := options.get(IRConverter.ConversionOptions.DISTINCT_FILENAME)):
                 file_name = distinct_file_name
             to_dir = IRConverter().get_opt(IRConverter.ConversionOptions.SAVE_LOCATION)
