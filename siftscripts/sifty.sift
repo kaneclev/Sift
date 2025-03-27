@@ -12,7 +12,8 @@ targets = [
 // Action block for Google
 Google: {
     // Extract all div, p, and span tags to get broad page content
-    extract where tag ["div", "p", "span"] -> google_content;
+    extract where text ["ULTRAPERNIS", "MEGAPENIS", "ZOOMERPENIS"] ->UILTRA;
+    extract where attribute "testingpenis": contains ["penis", "penis2", "penis3"] -> testimgprenis;
 
     // Extract the main content: items with id "main-content" excluding advertisements
     extract where attribute "id": "main-content" and not attribute "class": "advertisement" -> google_main;

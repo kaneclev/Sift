@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import sys
@@ -44,7 +43,7 @@ if __name__ == "__main__":
     # You could also extend this script to accept command line arguments if needed.
     #sname = "siftscripts/ujtest.sift"
     #test_script = read_file(sname)
-    scripts = ["siftscripts/jellycat.sift"]
+    scripts = ["siftscripts/sifty.sift"]
     for s in scripts:
         str_s = read_file(s)
         publish_script(str_s)
