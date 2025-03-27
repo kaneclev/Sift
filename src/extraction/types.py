@@ -19,6 +19,44 @@ class HTMLType(Enum):
                 return HTMLType.TEXT
             case _:
                 raise TypeError(f"Unexpected HTMLType requested to match: {to_match}")
+class ConstraintType(Enum):
+    """
+    NOTE: The constraint type is actually applicable to the *condition* which contains a series of constraints.
+    The constraint itself ought *always* try and match its details; 
+    the implications of those matches are determined by the overhead condition.
+    
+    For example; a condition may have multiple constraints, such that:
+    condition: {
+        constraint: {
+            "htype": "tag",
+            "details": [
+                "is_contains": True,
+                "div"
+            ],
+        },
+        constraint: {
+            "htype": "text",
+            "details": [
+                "is_contains": True,
+                "Hi!"
+            ],
+        }
+    }
+    """
+    MATCH_ANY = auto() # If any of the details in the constraint match, the constraint is satisfied.
+    MATCH_ALL = auto() # If *all* of the details in the constraint match, the constraint is satisfied.
+    MATCH_NONE = auto() # If *none* of the details in the constraint match, the constraint is satisfied.
+    @staticmethod
+    def match(to_match) -> "ConstraintType":
+        match to_match:
+            case 'any': # The optype 'any' imples an OR relationship between all of the details
+                return ConstraintType.MATCH_ANY
+            case 'and': # The optype 'and' implies an AND relationship between all of the details; all of the details must be satisfied.
+                return ConstraintType.MATCH_ALL
+            case 'not':
+                return ConstraintType.MATCH_NONE
+            case _:
+                raise TypeError(f"Unexpected ConstraintType requested to match: {to_match}")
 @dataclass
 class Detail:
     detail: Union[Dict, str, List]
@@ -27,8 +65,6 @@ class Detail:
     def _handle_nested_dict_detail(value: Dict, detail_object: "Detail", key: str = ""):
         for inner_key, inner_value in value.items():
             if inner_key == "contains":
-                # TODO: What about cases where: "attribute_key": ["item1", "item2"]
-                #   or "attribute_key": contains "item1"
                 #! Then its like {"contains": "..."} or {"contains": [...]}
                 detail_object.is_contains = True
                 if not isinstance(inner_value, str) and not isinstance(inner_value, list):
@@ -67,7 +103,6 @@ class Detail:
                         new_detail.detail = {key: []}
                         for inner_value in value:
                             new_detail.detail[key].append(inner_value)
-                    #! New Form: ["i1", "i2", "i3"], property is_contains is true
                 elif isinstance(value, str):
                     if key == "contains":
                         new_detail.is_contains = True
@@ -99,6 +134,7 @@ class Detail:
 class Constraint:
     htype: HTMLType
     detail: List[Detail]
+    constraint_type: 
     @classmethod
     def read_constraint(cls, constraint_dict: Dict) -> "Constraint":
         htype: HTMLType = None

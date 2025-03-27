@@ -6,8 +6,10 @@ PROJ_DIR = ./src/scraping/go_requests
 # Determine executable extension: .exe for Windows, nothing for others
 ifeq ($(OS),Windows_NT)
 	EXE_EXT = .exe
+	VENV_PY = Scripts
 else
 	EXE_EXT =
+	VENV_PY = bin
 endif
 
 # Ensure the bin directory exists
@@ -24,4 +26,6 @@ clean-builds:
 	rm -rf $(BUILD_DIR)
 
 start-sift: build-go
-	.venv/Scripts/python make_sift.py ".venv/Scripts/python src/main.py" "./bin/siftrequests"
+	.venv/$(VENV_PY)/python make_sift.py ".venv/$(VENV_PY)/python src/main.py" "./bin/siftrequests"
+
+

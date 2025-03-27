@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import subprocess
 import sys
 
@@ -41,7 +42,7 @@ def main():
         print("Provide at least one command to run in a new terminal.\n"
               "Example: python make_sift.py \"python myscript.py\" \"./bin/some_app\"")
         sys.exit(1)
-
+    print(os.getcwd())
     # Each argument after the script name is treated as a separate command.
     commands = sys.argv[1:]
 
