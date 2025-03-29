@@ -1,8 +1,8 @@
 from enum import Enum, auto
 from typing import Dict, List
 
-from api.parsing_api.ipc_management.target_handler import TargetHandler
-from language.IR.ir_base import IntermediateRepresentation
+from api.language_api.ipc_management.target_handler import TargetHandler
+from language.compiler.ir_base import IntermediateRepresentation
 
 
 class RequestServiceFormats(Enum):

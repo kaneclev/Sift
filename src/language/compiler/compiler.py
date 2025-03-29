@@ -1,20 +1,25 @@
 from typing import Dict, List, Tuple
 
-from language.IR.instructions.instruction import Instruction
-from language.IR.ir_base import IntermediateRepresentation
+from language.compiler.instructions.instruction import Instruction
+from language.compiler.ir_base import IntermediateRepresentation
 from language.parsing.ast.actions.action.action import Action
 from language.parsing.ast.script_tree import ScriptTree
 
 # Each IR node is going to be an ActionBlock.
 
-class TreeReader:
+class Compiler:
+    @staticmethod
+    def to_ir(ast: ScriptTree, identifier: str) -> IntermediateRepresentation:
+        ir = Compiler.ast_to_instructions(ast, identifier=identifier)
+        return ir
+
     @staticmethod
     def ast_to_instructions(ast: ScriptTree, identifier: str) -> IntermediateRepresentation:
         # sort the action blocks
-        action_blocks = TreeReader._get_ordered_action_blocks(targets=ast.targets, action_blocks=ast.action_blocks)
+        action_blocks = Compiler._get_ordered_action_blocks(targets=ast.targets, action_blocks=ast.action_blocks)
         # collect all the actions from the sorted list of action blocks
-        url_action_list_dict = TreeReader._action_blocks_to_actions(action_blocks=action_blocks, targets=ast.targets)
-        instructions_object_list = TreeReader._actions_to_instructions(url_action_dict=url_action_list_dict)
+        url_action_list_dict = Compiler._action_blocks_to_actions(action_blocks=action_blocks, targets=ast.targets)
+        instructions_object_list = Compiler._actions_to_instructions(url_action_dict=url_action_list_dict)
         return IntermediateRepresentation(identifier=identifier, instruction_list=instructions_object_list)
 
     @staticmethod
@@ -37,7 +42,4 @@ class TreeReader:
         action_block_order_map = {target: idx for idx, target in enumerate(targets)}
         return sorted(action_blocks, key=lambda block: action_block_order_map.get(block.target, float('inf')))
 
-    @staticmethod
-    def to_ir(ast: ScriptTree, identifier: str) -> IntermediateRepresentation:
-        ir = TreeReader.ast_to_instructions(ast, identifier=identifier)
-        return ir
+    

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-import language.IR.instructions.operations as ops
+import language.compiler.instructions.operations as ops
 
 from language.parsing.ast.actions.action.action import Action
 from shared.registry import RegistryType, lookup

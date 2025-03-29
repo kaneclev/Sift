@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List
 
-from language.IR.instructions.instruction import Instruction
+from language.compiler.instructions.instruction import Instruction
 
 
 @dataclass

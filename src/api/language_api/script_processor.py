@@ -1,15 +1,19 @@
 import os
 
-from api.parsing_api.ipc_management.ipc_manager import (
+from api.language_api.ipc_management.ipc_manager import (
     IPC,
     Formats,
     IPCOptions,
     Recipients,
 )
-from file_operations.script_representations import ScriptObject
-from language.IR.ir_base import IntermediateRepresentation
-from language.IR.ir_format_conversion import IRConverter
-from language.IR.read_tree import TreeReader
+from api.language_api.script_representations import (
+    RepresentationType,
+    ScriptObject,
+    get_script_object,
+)
+from language.compiler.compiler import Compiler
+from language.compiler.ir_base import IntermediateRepresentation
+from language.compiler.ir_format_conversion import IRConverter
 from language.parsing.ast.script_tree import ScriptTree
 from language.parsing.parser import Parser
 
@@ -19,13 +23,16 @@ DEBUG_LOG_DIR = os.environ["DEBUG_LOGS"]
 # #! Main API For Parsing SiftScripts
 ################################################
 class ScriptProcessor:
-    def __init__(self, script: ScriptObject):
+    def __init__(self, script):
         # TODO: This class might need to be the one to handle error propogation.
         """ API For parsing and generating IR for a sift script.
 
         Args:
             script (ScriptObject): The script object to process (must inherit from ScriptObject)
         """
+        if not isinstance(script, ScriptObject):
+            # Then we are being fed a file manually thru cmd args.
+            script = get_script_object(raw=script, rtype=RepresentationType.FILE)
         self.script: ScriptObject = script
         pass
 
@@ -45,7 +52,7 @@ class ScriptProcessor:
             self.script.issues.describe()
             return []
         ast = Parser(self.script.get_content()).parse_content_to_tree()
-        ir = TreeReader.to_ir(ast, identifier=self.script.get_id())
+        ir = Compiler.to_ir(ast, identifier=self.script.get_id())
         if (flag := os.environ.get('PARSER_DEBUG', None)) is not None:
             if flag == "1":
                 is_debug = True

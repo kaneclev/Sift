@@ -1,5 +1,5 @@
 
-from language.IR.instructions.instruction import Instruction
+from language.compiler.instructions.instruction import Instruction
 
 
 class TargetHandler:

@@ -1,9 +1,9 @@
 from dataclasses import dataclass, field
 from typing import List, Union
 
-from language.IR.instructions.conditionals import Conditional
-from language.IR.instructions.html_properties import HTMLProperty
-from language.IR.instructions.operations.operation import Operation
+from language.compiler.instructions.conditionals import Conditional
+from language.compiler.instructions.html_properties import HTMLProperty
+from language.compiler.instructions.operations.operation import Operation
 from language.parsing.ast.actions.action.action import ActionType
 from language.parsing.ast.actions.action_plugins.filter.filter import Filter
 from language.parsing.ast.enums import LogicalOperatorType

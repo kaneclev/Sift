@@ -1,4 +1,3 @@
-import json
 import pickle
 
 from dataclasses import asdict
@@ -7,7 +6,7 @@ from typing import Dict, Union
 
 import orjson
 
-from language.IR.ir_base import IntermediateRepresentation
+from language.compiler.ir_base import IntermediateRepresentation
 from shared.utils.file_conversions import FileConverter, FileOpts
 
 

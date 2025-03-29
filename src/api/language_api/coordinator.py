@@ -4,8 +4,8 @@ import time
 
 from typing import Any, Dict, List
 
-from api.parsing_api.ipc_management.ipc_manager import Recipients
-from api.parsing_api.worker import RepresentationType, Worker
+from api.language_api.ipc_management.ipc_manager import Recipients
+from api.language_api.worker import RepresentationType, Worker
 from shared.broker import HOST, PASS, PORT, USER, MessageBroker
 
 logger = logging.getLogger(__name__)

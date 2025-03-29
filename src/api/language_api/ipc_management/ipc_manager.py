@@ -2,8 +2,11 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List
 
-from language.IR.ir_base import IntermediateRepresentation
-from language.IR.ir_translator import RequestServiceFormats, RequestServiceFormatter
+from language.compiler.ir_base import IntermediateRepresentation
+from language.compiler.ir_translator import (
+    RequestServiceFormats,
+    RequestServiceFormatter,
+)
 
 
 class Recipients(Enum):

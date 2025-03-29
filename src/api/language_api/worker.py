@@ -1,8 +1,8 @@
 from typing import Any, Dict, List, Union
 
-from api.parsing_api.ipc_management.ipc_manager import Recipients
-from api.parsing_api.script_processor import ScriptProcessor
-from file_operations.script_representations import (
+from api.language_api.ipc_management.ipc_manager import Recipients
+from api.language_api.script_processor import ScriptProcessor
+from api.language_api.script_representations import (
     RepresentationType,
     ScriptObject,
     get_script_object,
