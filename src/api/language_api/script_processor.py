@@ -1,20 +1,13 @@
 import os
 
-from api.language_api.ipc_management.ipc_manager import (
-    IPC,
-    Formats,
-    IPCOptions,
-    Recipients,
-)
 from api.language_api.script_representations import (
     RepresentationType,
     ScriptObject,
     get_script_object,
 )
-from language.compiler.compiler import Compiler
-from language.compiler.ir_base import IntermediateRepresentation
-from language.compiler.ir_format_conversion import IRConverter
-from language.parsing.ast.script_tree import ScriptTree
+from compiler.compiler import CompiledScript, Compiler
+from compiler.intermediate_representation import IntermediateRepresentation
+from language.parsing.ast.trees import ScriptTree
 from language.parsing.parser import Parser
 
 DEBUG_LOG_DIR = os.environ["DEBUG_LOGS"]
@@ -36,14 +29,6 @@ class ScriptProcessor:
         self.script: ScriptObject = script
         pass
 
-    def make_message(self, ir: IntermediateRepresentation, recipient: Recipients, correlation_id: str):
-        options = IPCOptions(recipient=recipient, format_=Formats.AMPQ, correlation_id=correlation_id)
-        if not ir:
-            ir = self.to_ir()
-        if not isinstance(options, list):
-            options = [options]
-        confirmations = IPC.create(ir_obj=ir, translations=options)
-        return confirmations
 
     def parse(self) -> list[ScriptTree, IntermediateRepresentation]:
         is_debug = False
@@ -52,10 +37,15 @@ class ScriptProcessor:
             self.script.issues.describe()
             return []
         ast = Parser(self.script.get_content()).parse_content_to_tree()
-        ir = Compiler.to_ir(ast, identifier=self.script.get_id())
+
+        compiler = Compiler(AST=ast, script_id=self.script.get_id())
+
+        compiled_object: CompiledScript = compiler.compile()
+        ir, bytecode = compiled_object.IR, compiled_object.BYTECODE  # noqa: F841
+
         if (flag := os.environ.get('PARSER_DEBUG', None)) is not None:
             if flag == "1":
-                is_debug = True
-        if is_debug:
-            IRConverter.to_json(ir_obj=ir)
+                is_debug = True  # noqa: F841
+                # TODO: Now what?
+
         return [ast, ir]
