@@ -1,9 +1,8 @@
 import logging
 
 from abc import ABC, abstractmethod
-from ast import List
 from dataclasses import asdict, dataclass, field
-from typing import Dict, Generic, TypeVar, Union
+from typing import Dict, Generic, List, TypeVar, Union
 
 import lark_cython
 
