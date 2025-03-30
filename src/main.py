@@ -54,11 +54,12 @@ def start_queue_communication():
     except KeyboardInterrupt:
         logger.info("Interrupted by user, shutting down...")
         coordinator.stop_consuming()
+
 def manual_compile(fname: str):
     from api.language_api.script_processor import ScriptProcessor
     proc = ScriptProcessor(fname)
     ast, ir = proc.parse()
-    
+    print(f'Parsed to AST: {ast}, IR: {ir}')
 
 def start_file_communication(fname: str):
     """Process a file directly (legacy mode)."""
@@ -72,7 +73,7 @@ def start_file_communication(fname: str):
 def arg_handler(parser: argparse.ArgumentParser) -> bool:
     """Handle command line arguments."""
     parser.add_argument("--man", help="Manually feed a file instead of using the queue.", required=False)
-    parser.add_argument("--no-queue", help="Feed a file using 'man' without using a RabbitMQ process; only compile")
+    parser.add_argument("--no-queue", help="Feed a file using 'man' without using a RabbitMQ process; only compile", action="store_true")
     args = parser.parse_args()
     for arg in vars(args):
         OPTS[arg] = getattr(args, arg)
@@ -87,7 +88,10 @@ def main():
         return
 
     if OPTS["man"] is not None:
-        start_file_communication(OPTS["man"])
+        if OPTS["no_queue"]:
+            manual_compile(fname=OPTS["man"])
+        else:
+            start_file_communication(OPTS["man"])
         return
     start_queue_communication()
 
