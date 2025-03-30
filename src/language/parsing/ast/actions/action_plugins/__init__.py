@@ -3,7 +3,7 @@ import importlib
 import pathlib
 import sys
 
-from language.parsing.ast.actions.action.action import Action, ActionType
+from language.parsing.ast.actions.action import Action, ActionType
 from shared.registry import RegistryType, register
 
 __all__ = []  # We'll populate it dynamically

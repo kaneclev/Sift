@@ -3,12 +3,9 @@ from typing import Callable, Dict, List
 
 import language.parsing.exceptions.internal_exception as act_except
 
-from language.parsing.ast.actions.action.action import Action
-from language.parsing.ast.actions.action.action_types import ActionType
-from language.parsing.ast.actions.action_block.action_block_grammar import (
-    ActionBlockGrammar,
-)
-from language.parsing.ast.parsed_node_interface import ParsedNode
+from language.parsing.ast.actions.action import Action, ActionType
+from language.parsing.grammars import ActionBlockGrammar
+from language.parsing.utils import ParsedNode
 from shared.registry import RegistryType, get_registry
 
 
@@ -34,8 +31,10 @@ class ActionBlock(ParsedNode):
                 except act_except.IncorrectContentForPluginError:
                     continue
         return cls(target=target, actions=action_list)
+
     def classify_actions(self):
         ...
+
     def validate(self) -> bool:
         # ! Interface Implementation
         #TODO

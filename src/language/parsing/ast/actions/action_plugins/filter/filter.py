@@ -40,19 +40,21 @@ from dataclasses import dataclass  # noqa: N999
 from enum import Enum, auto
 from typing import Dict, Iterator, List, Optional, Union
 
-from language.parsing.ast.actions.action.action import Action
-from language.parsing.ast.actions.action.action_types import ActionType
-from language.parsing.ast.actions.action_plugins.filter.expression_types import (
-    LogicalOperatorType,
-    match_logical_op_type,
-)
-from language.parsing.ast.actions.action_plugins.filter.filter_grammar import (
-    FilterGrammar,
-)
-from language.parsing.ast.actions.action_plugins.filter.filter_types import (
-    FilterTypes,
-    match_filter_type,
-)
+from language.parsing.ast.actions.action import Action, ActionType
+from language.parsing.ast.enums import HTMLPropertyType, match_logical_op_type
+from language.parsing.grammars import FilterGrammar
+
+
+def match_filter_type(stmt: dict) -> HTMLPropertyType:  # noqa: C901
+    assert len(stmt.keys()) == 1, f"Too many keys in the filter statement: {stmt}"
+    stmt_key = list(stmt.keys())[0]
+    match stmt_key:
+        case "attribute":
+            return HTMLPropertyType.ATTRIBUTE
+        case "text":
+            return HTMLPropertyType.TEXT
+        case "tag":
+            return HTMLPropertyType.TAG
 
 
 @dataclass
@@ -77,8 +79,8 @@ class Filter(Action):
             an `and` operator might have multiple operands.
     """
 
-    operator: Optional[LogicalOperatorType] = None
-    filter_type: Optional[FilterTypes] = None
+    operator: Optional[HTMLPropertyType] = None
+    filter_type: Optional[HTMLPropertyType] = None
     value: Optional[Union[str, List[str], Dict[str, str]]] = None
     operands: Optional[List["Filter"]] = None
     def __init__(self, operator=None, filter_type=None, value=None, operands=None):
@@ -307,7 +309,7 @@ class Filter(Action):
                 filter_type_info = {key: value}
                 identified_filter_type = match_filter_type(filter_type_info)
                 processed_value = Filter._process_atomic_value(identified_filter_type, value)
-                if identified_filter_type == FilterTypes.UNKNOWN:
+                if identified_filter_type == HTMLPropertyType.UNKNOWN:
                     raise TypeError(f'Unknown filter type for data: {key}: {value}')
                 return Filter(filter_type=identified_filter_type, value=processed_value)
         raise ValueError(f"Unrecognized atomic filter structure: {data}")
@@ -335,11 +337,11 @@ class Filter(Action):
         """
         result = None
         if isinstance(value, list):
-            if identified_filter_type == FilterTypes.ATTRIBUTE:
+            if identified_filter_type == HTMLPropertyType.ATTRIBUTE:
                 result = Filter._process_attribute_filter_type(value)
-            if identified_filter_type == FilterTypes.TEXT:
+            if identified_filter_type == HTMLPropertyType.TEXT:
                 result = Filter._process_text_filter_type(value)
-            if identified_filter_type == FilterTypes.TAG:
+            if identified_filter_type == HTMLPropertyType.TAG:
                 return Filter._process_tag_filter_type(value)
             if result is None:
                 raise ValueError(f"The filter value could not be morphed by any processor. Value: {value}")
