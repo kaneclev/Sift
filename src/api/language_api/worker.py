@@ -1,6 +1,6 @@
+
 from typing import Any, Dict, List, Union
 
-from api.language_api.ipc_management.ipc_manager import Recipients
 from api.language_api.script_processor import ScriptProcessor
 from api.language_api.script_representations import (
     RepresentationType,
@@ -50,6 +50,6 @@ class Worker:
         messages = []
 
         # Get messages for the Request Manager
-        request_messages = proc.make_message(ir, recipient=Recipients.REQUEST_MANAGER, correlation_id=script_obj.get_id())
-        messages.extend(request_messages)
+        #request_messages = proc.make_message(ir, recipient=Recipients.REQUEST_MANAGER, correlation_id=script_obj.get_id())
+        #messages.extend(request_messages)
         return messages

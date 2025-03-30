@@ -5,12 +5,6 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import Any, List
 
-from file_operations.exceptions.external.file_exceptions import (
-    BadExtensionError,
-    NotAFileError,
-    SiftFileDoesNotExistError,
-)
-
 
 class RepresentationType(Enum):
     FILE = auto()
@@ -101,13 +95,13 @@ class File(ScriptObject):
     def _verify_filepath(self, file_path: Path) -> None:
         assert isinstance(file_path, Path)
         if not file_path.exists():
-            exception = SiftFileDoesNotExistError(file_path)
+            exception = FileExistsError(file_path)
             self.issues.append(exception=exception)
         if not file_path.is_file():
-            exception = NotAFileError(file_path)
+            exception = FileNotFoundError(file_path)
             self.issues.append(exception=exception)
         if file_path.suffix != ".sift":
-            exception = BadExtensionError(file_path)
+            exception = NameError(file_path)
             self.issues.append(exception=exception)
 
 class Message(ScriptObject):

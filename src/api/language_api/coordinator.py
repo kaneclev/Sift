@@ -4,7 +4,6 @@ import time
 
 from typing import Any, Dict, List
 
-from api.language_api.ipc_management.ipc_manager import Recipients
 from api.language_api.worker import RepresentationType, Worker
 from shared.broker import HOST, PASS, PORT, USER, MessageBroker
 
@@ -105,15 +104,10 @@ class Coordinator:
         """Route parsed results to appropriate service queues."""
         for result in results:
             # Determine the target service based on the result
-            recipient = result.get('recipient')
             message = result.get('message')
 
-            if recipient == Recipients.REQUEST_MANAGER.value:
-                self.broker.publish(self.request_queue, message, correlation_id)
-            else:
-                print(f'real one: {recipient}')
-                # Default to the other service queue for any other recipients
-                self.broker.publish(self.other_service_queue, message, correlation_id)
+            self.broker.publish(self.request_queue, message, correlation_id)
+
 
     @staticmethod
     def coordinate_parsing(message: Dict):
