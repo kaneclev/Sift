@@ -1,14 +1,67 @@
 from dataclasses import dataclass, field
-from typing import Callable, Dict, Generic, List, TypeVar, Union
+from typing import Callable, Dict, Generic, List, Tuple, TypeVar, Union
 
 from language.parsing.ast.actions.action import Action, ActionType
 from language.parsing.ast.actions.action_plugins.filter.filter import Filter
 from language.parsing.ast.enums import HTMLPropertyType, LogicalOperatorType
+from language.parsing.ast.trees import ScriptTree
 from shared.registry import RegistryType, lookup, register
 
 #! Constraint can be anything; this is where the flexibility comes in.
 #! Future implementations of filters can have different *kinds* of conditionals by allowing for varying constraints
 Constraint = TypeVar("Constraint")
+
+############################
+### Factory Class For IR ###
+############################
+class IntermediateConstructor:
+    @staticmethod
+    def to_ir(AST: ScriptTree, identifier: str) -> "IntermediateRepresentation":  # noqa: N803
+        ir = IntermediateConstructor.ast_to_instructions(AST, identifier=identifier)
+        return ir
+
+    @staticmethod
+    def ast_to_instructions(AST: ScriptTree, identifier: str) -> "IntermediateRepresentation":  # noqa: N803
+        # sort the action blocks
+        action_blocks = IntermediateConstructor._get_ordered_action_blocks(targets=AST.targets, action_blocks=AST.action_blocks)
+        # collect all the actions from the sorted list of action blocks
+        url_action_list_dict = IntermediateConstructor._action_blocks_to_actions(action_blocks=action_blocks, targets=AST.targets)
+        instructions_object_list = IntermediateConstructor._actions_to_instructions(url_action_dict=url_action_list_dict)
+        return IntermediateRepresentation(identifier=identifier, instruction_list=instructions_object_list)
+
+    @staticmethod
+    def _actions_to_instructions(url_action_dict: Dict[str, List[Action]]) -> List["Instruction"]:
+        instr_list: List[Instruction] = []
+        for url, action_tuple in url_action_dict.items():
+            new_instruction = Instruction.generate(url=url, alias=action_tuple[1], action_list=action_tuple[0])
+            instr_list.append(new_instruction)
+        return instr_list
+
+    @staticmethod
+    def _action_blocks_to_actions(action_blocks, targets) -> Dict[str, List[Tuple[Action, str]]]:
+        first_abstraction_ir = {}
+        for block in action_blocks:
+            first_abstraction_ir[targets[block.target]] = (block.actions, block.target)
+        return first_abstraction_ir
+
+    @staticmethod
+    def _get_ordered_action_blocks(targets, action_blocks) -> List:
+        action_block_order_map = {target: idx for idx, target in enumerate(targets)}
+        return sorted(action_blocks, key=lambda block: action_block_order_map.get(block.target, float('inf')))
+
+###########################
+### IR Internal Objects ###
+###########################
+@dataclass
+class IntermediateRepresentation:
+    identifier: str
+    instruction_list: List["Instruction"] = field(default_factory=list)
+    def __str__(self):
+        return "\n".join([str(i) for i in self.instruction_list])
+    def __repr__(self):
+        return str([repr(i) for i in self.instruction_list])
+    def __iter__(self):
+        return iter(self.instruction_list)
 
 @dataclass
 class Conditional(Generic[Constraint]):
@@ -55,16 +108,9 @@ class Instruction:
     def __repr__(self):
         return str([repr(op) for op in self.operations])
 
-@dataclass
-class IntermediateRepresentation:
-    identifier: str
-    instruction_list: List["Instruction"] = field(default_factory=list)
-    def __str__(self):
-        return "\n".join([str(i) for i in self.instruction_list])
-    def __repr__(self):
-        return str([repr(i) for i in self.instruction_list])
-    def __iter__(self):
-        return iter(self.instruction_list)
+#######################
+### IR Object Types ###
+#######################
 
 @dataclass
 class FilterConditional(Conditional):

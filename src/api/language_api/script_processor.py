@@ -5,8 +5,8 @@ from api.language_api.script_representations import (
     ScriptObject,
     get_script_object,
 )
-from compiler.compiler import CompiledScript, Compiler
-from compiler.intermediate_representation import IntermediateRepresentation
+from language.compiler.compiler import CompiledScript, Compiler
+from language.compiler.intermediate_representation import IntermediateRepresentation
 from language.parsing.ast.trees import ScriptTree
 from language.parsing.parser import Parser
 
