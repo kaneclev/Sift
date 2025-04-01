@@ -1,6 +1,8 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Callable, Dict, Generic, List, Tuple, TypeVar, Union
 
+from language.compiler.types import Constraint, IRNode
 from language.parsing.ast.actions.action import Action, ActionType
 from language.parsing.ast.actions.action_plugins.filter.filter import Filter
 from language.parsing.ast.enums import HTMLPropertyType, LogicalOperatorType
@@ -9,7 +11,6 @@ from shared.registry import RegistryType, lookup, register
 
 #! Constraint can be anything; this is where the flexibility comes in.
 #! Future implementations of filters can have different *kinds* of conditionals by allowing for varying constraints
-Constraint = TypeVar("Constraint")
 
 ############################
 ### Factory Class For IR ###
@@ -52,8 +53,9 @@ class IntermediateConstructor:
 ###########################
 ### IR Internal Objects ###
 ###########################
+
 @dataclass
-class IntermediateRepresentation:
+class IntermediateRepresentation(IRNode):
     identifier: str
     instruction_list: List["Instruction"] = field(default_factory=list)
     def __str__(self):
@@ -62,27 +64,36 @@ class IntermediateRepresentation:
         return str([repr(i) for i in self.instruction_list])
     def __iter__(self):
         return iter(self.instruction_list)
+    def to_dict(self):
+        return {"id": self.identifier, "instructions": [instr.to_dict() for instr in self.instruction_list]}
 
 @dataclass
-class Conditional(Generic[Constraint]):
+class Conditional(IRNode):
     op: LogicalOperatorType
     constraints: List[Union["Conditional", Constraint]] = field(default_factory=[])
+    def to_dict(self):
+        return super().to_dict()
 
 @dataclass
-class Operation:
+class Operation(ABC):
     @staticmethod
     def register_op(action_type: ActionType, factory: Callable):
         register(rtype=RegistryType.OP, item=factory, key=action_type)
+    @abstractmethod
+    def to_dict(self):
+        ...
 
 @dataclass
-class HTMLProperty:
+class HTMLProperty(IRNode):
     htype: HTMLPropertyType
     detail: Union[str, List, Dict]
     def __str__(self):
         return f'{self.htype.value} {self.detail}'
+    def to_dict(self):
+        return {self.htype.value: self.detail}
 
 @dataclass
-class Instruction:
+class Instruction(IRNode):
     url: str
     alias: str
     operations: List[Operation]
@@ -105,16 +116,24 @@ class Instruction:
         ]
         ir.extend([f"{str(op)}" for op in self.operations])
         return "\n".join(ir)
+
     def __repr__(self):
         return str([repr(op) for op in self.operations])
+
+    def to_dict(self):
+        return {"url": self.url, "alias": self.alias, "operations": [op.to_dict() for op in self.operations]}
 
 #######################
 ### IR Object Types ###
 #######################
 
 @dataclass
-class FilterConditional(Conditional):
+class FilterConditional(Conditional, Constraint):
     constraints: List[Union["FilterConditional", HTMLProperty]]
+
+    def to_dict(self):
+        return {"filter_condition": [constr.to_dict() for constr in self.constraints]}
+
     def to_ir(self, indent: int = 0) -> str:
         indent_str = "    " * indent  # 4 spaces per indent level
         if self.op == LogicalOperatorType.NOT:
@@ -151,14 +170,18 @@ class FilterConditional(Conditional):
         return output.rstrip()
 
 @dataclass
-class FilterIR(Operation):
+class Filter(Operation):
     to_alias: str
     condition: FilterConditional
     from_alias: str = field(default_factory=str)
     optype: str = field(default_factory=str)
+
+    def to_dict(self):
+        return {"to_alias": self.to_alias, "from_alias": self.from_alias, "condition": self.condition.to_dict(), "optype": self.optype}
+
     @classmethod
     def generate(cls, filter: Filter):
-        condition = FilterIR.compose_filters(filter=filter)
+        condition = Filter.compose_filters(filter=filter)
         if isinstance(condition, HTMLProperty):
             condition = FilterConditional(op=LogicalOperatorType.ANY, constraints=[condition])
         from_alias = filter.metadata["from_alias"]
@@ -175,7 +198,7 @@ class FilterIR(Operation):
         if filter.operator:
             constraints = []
             for op in filter.operands:
-                constraints.append(FilterIR.compose_filters(op))
+                constraints.append(Filter.compose_filters(op))
             return FilterConditional(op=filter.operator, constraints=constraints)
         # then its a leaf, base case
         else:
@@ -186,4 +209,4 @@ class FilterIR(Operation):
     def __repr__(self):
         return f"FilterIR (from: {self.from_alias or '<NA>'}, to {self.to_alias}, cond: {self.condition})"
 
-Operation.register_op(action_type=ActionType("filter"), factory=FilterIR.generate)
+Operation.register_op(action_type=ActionType("filter"), factory=Filter.generate)

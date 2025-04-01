@@ -238,22 +238,6 @@ class ScriptTree(ParsedNode):
     action_blocks: List[ActionBlock]
     """ The first child of the script tree, containing all the action blocks. """
 
-    @staticmethod
-    def _parse_action_blocks_to_dataclasses(action_block_list: List[Dict[str, str]]):
-        """ A helper method for parsing raw action block content into ActionBlock instances.
-
-        This method is called by the generate() factory method to transform a list of action block representations,
-        which are dictionaries provided by HighLevelTree, into real ActionBlock instances.
-
-        Args:
-            action_block_list (List[Dict[str, str]]):
-                The list of action blocks, represented rawly by dictionaries where the target is the key
-                and the value is the raw content of the action block, to be parsed by ActionBlock's generate() method.
-
-        Returns:
-            List[ActionBlock]: The list of ActionBlock instances generated from the raw list of strings.
-        """
-
 
     @classmethod
     def generate(cls, abstract_tree: HighLevelTree):
@@ -267,10 +251,6 @@ class ScriptTree(ParsedNode):
         for action_block in action_blocks:
             parsed_block = ActionBlock.generate(action_block)
             instance_action_block_list.append(parsed_block)
-
-        instance_action_block_list = ScriptTree._parse_action_blocks_to_dataclasses(
-            action_block_list=action_blocks
-        )
 
         return cls(
             targets=targets,

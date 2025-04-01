@@ -1,8 +1,11 @@
 import os
 
+from typing import List, Union
+
 from api.language_api.script_representations import (
     RepresentationType,
     ScriptObject,
+    ScriptObjectIssues,
     get_script_object,
 )
 from language.compiler.compiler import CompiledScript, Compiler
@@ -26,15 +29,18 @@ class ScriptProcessor:
         if not isinstance(script, ScriptObject):
             # Then we are being fed a file manually thru cmd args.
             script = get_script_object(raw=script, rtype=RepresentationType.FILE)
-        self.script: ScriptObject = script
+        self.script: Union[ScriptObject, ScriptObjectIssues] = script
         pass
 
+    def _verify_representation(self) -> bool:
+        if isinstance(self.script, ScriptObjectIssues):
+            print(self.script.describe())
+            return False
+        return True
 
-    def parse(self) -> list[ScriptTree, IntermediateRepresentation]:
-        is_debug = False
-        if not self.script.is_verified:
-            print("\nCannot begin to parse script.")
-            self.script.issues.describe()
+    def parse(self) -> List[Union[ScriptTree, IntermediateRepresentation]]:
+        is_valid_script = self._verify_representation()
+        if not is_valid_script:
             return []
         ast = Parser(self.script.get_content()).parse_content_to_tree()
 

@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, List
+from typing import Any, List, Union
 
 
 class RepresentationType(Enum):
@@ -11,11 +11,17 @@ class RepresentationType(Enum):
     MESSAGE = auto()
 
 @dataclass
+class Issue:
+    exception: Exception
+    reason: str
+    def __str__(self):
+        return f"\t{self.exception}. Reason: {self.reason}"
+@dataclass
 class ScriptObjectIssues:
-    issues: List[Exception] = field(default_factory=list)
+    issues: List[Issue] = field(default_factory=list)
 
-    def append(self, exception: Exception):
-        self.issues.append(exception)
+    def append(self, issue: Issue):
+        self.issues.append(issue)
 
     def describe(self):
         reason_list: List[str] = []
@@ -59,7 +65,7 @@ class File(ScriptObject):
         self.path_obj = None
         super().__init__(to_verify=file_path)
         if not self.is_verified:
-            print(f"Could not verify script object as being valid: {self.issues.describe()}")
+            print(f"Could not verify script object as being valid: \n{self.issues.describe()}")
             return
         self.metadata: File.Metadata = self._get_metadata()
         self.data = self.get_data()
@@ -94,15 +100,20 @@ class File(ScriptObject):
 
     def _verify_filepath(self, file_path: Path) -> None:
         assert isinstance(file_path, Path)
-        if not file_path.exists():
-            exception = FileExistsError(file_path)
-            self.issues.append(exception=exception)
-        if not file_path.is_file():
-            exception = FileNotFoundError(file_path)
-            self.issues.append(exception=exception)
         if file_path.suffix != ".sift":
             exception = NameError(file_path)
-            self.issues.append(exception=exception)
+            self.issues.append(issue=Issue(exception=exception, 
+                                           reason="No '.sift' extension present; is this the right filetype?"))
+        if not file_path.exists():
+            exception = FileNotFoundError(file_path)
+            self.issues.append(issue=Issue(exception=exception, 
+                                           reason="This sift file doesn't exist."))
+            return # Because we know it wont be a file.
+        if not file_path.is_file():
+            exception = TypeError(file_path)
+            self.issues.append(issue=Issue(exception=exception, 
+                                           reason="This sift file is not a regular file (is it a directory?)"))
+        
 
 class Message(ScriptObject):
     def __init__(self, content, correlation_id):
@@ -113,20 +124,20 @@ class Message(ScriptObject):
     def verify(self, to_verify: str):
         if to_verify.strip() is not None:
             return True
-        self.issues.append(ValueError("There is no content to be parsed in this script..."))
+        self.issues.append(issue=Issue(exception=ValueError(), reason="No content present in the script message."))
         return False
 
     def get_id(self):
         return self.correlation_id
 
-def get_script_object(raw: Any, rtype: RepresentationType) -> ScriptObject:
+def get_script_object(raw: Any, rtype: RepresentationType) -> Union[ScriptObject, ScriptObjectIssues]:
     match rtype:
         case RepresentationType.FILE:
             assert isinstance(raw, str)
 
             new_file = File(raw)
             if not new_file.is_verified:
-                return None
+                return new_file.issues
             return new_file
         case RepresentationType.MESSAGE:
             assert isinstance(raw, dict)
@@ -136,9 +147,9 @@ def get_script_object(raw: Any, rtype: RepresentationType) -> ScriptObject:
             new_script_msg = Message(content=content, correlation_id=correlation_id)
 
             if not new_script_msg.is_verified:
-                return None
+                return new_script_msg.issues
 
             return new_script_msg
         case _:
-            ...
+            raise TypeError(f"Unexpected representation type: {rtype} (object: {raw})")
     return None

@@ -5,7 +5,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from language.parsing.exceptions.external_exception import SyntaxError
+from language.exceptions.external_exception import SyntaxError
 
 
 def custom_excepthook(exctype, value, tb):

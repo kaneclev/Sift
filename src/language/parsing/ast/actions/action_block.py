@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Callable, Dict, List
 
-import language.parsing.exceptions.internal_exception as act_except
+import language.exceptions.internal_exception as act_except
 
 from language.parsing.ast.actions.action import Action, ActionType
 from language.parsing.grammars import ActionBlockGrammar
