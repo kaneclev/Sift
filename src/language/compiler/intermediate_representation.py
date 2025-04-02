@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Callable, Dict, Generic, List, Tuple, TypeVar, Union
+from typing import Callable, Dict, List, Tuple, Union
 
 from language.compiler.types import Constraint, IRNode
 from language.parsing.ast.actions.action import Action, ActionType

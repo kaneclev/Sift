@@ -1,5 +1,5 @@
 targets = [eBay: "https://www.ebay.com/b/Hard-Drives-HDD-SSD-NAS/182085/bn_739008"]
 
 eBay: {
-    extract where tag "div" and attribute "class": "brwrvr__item-card__signals" -> all_hard_drive_listings;
+    extract where tag "div" and attribute "class": "brwrvr__item-card__signals" and (not text contains "sale" or text contains "no sale") -> all_hard_drive_listings;
 }

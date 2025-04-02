@@ -8,8 +8,6 @@ from api.language_api.script_representations import (
     ScriptObjectIssues,
     get_script_object,
 )
-from language.compiler.compiler import CompiledScript, Compiler
-from language.compiler.intermediate_representation import IntermediateRepresentation
 from language.parsing.ast.trees import ScriptTree
 from language.parsing.parser import Parser
 
@@ -30,6 +28,7 @@ class ScriptProcessor:
             # Then we are being fed a file manually thru cmd args.
             script = get_script_object(raw=script, rtype=RepresentationType.FILE)
         self.script: Union[ScriptObject, ScriptObjectIssues] = script
+        self.id = self.script.get_id()
         pass
 
     def _verify_representation(self) -> bool:
@@ -38,20 +37,10 @@ class ScriptProcessor:
             return False
         return True
 
-    def parse(self) -> List[Union[ScriptTree, IntermediateRepresentation]]:
+    def parse(self) -> ScriptTree:
         is_valid_script = self._verify_representation()
         if not is_valid_script:
             return []
         ast = Parser(self.script.get_content()).parse_content_to_tree()
 
-        compiler = Compiler(AST=ast, script_id=self.script.get_id())
-
-        compiled_object: CompiledScript = compiler.compile()
-        ir, bytecode = compiled_object.IR, compiled_object.BYTECODE  # noqa: F841
-
-        if (flag := os.environ.get('PARSER_DEBUG', None)) is not None:
-            if flag == "1":
-                is_debug = True  # noqa: F841
-                # TODO: Now what?
-
-        return [ast, ir]
+        return ast

@@ -58,12 +58,11 @@ def start_queue_communication():
         coordinator.stop_consuming()
 
 def manual_compile(fname: str):
-    from api.language_api.script_processor import ScriptProcessor
-    proc = ScriptProcessor(fname)
-    parsed = proc.parse()
-    if not parsed:
-        return None
-    ast, ir = parsed[0], parsed[1]
+    from language.compiler.compiler import Compiler
+    proc = Compiler(fname)
+    proc.compile()
+    ir = proc.STATES['IR']
+    ast = proc.STATES['AST']
     ir_b = json.dumps(ir.to_dict(), indent=2)
     with open("debug_logs/tst_ir.json", 'w') as f:
         f.write(ir_b)

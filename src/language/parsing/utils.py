@@ -9,6 +9,8 @@ import lark_cython
 from lark import Lark, Token, Transformer, exceptions, logger
 from lark.tree import Meta
 
+from language.exceptions.external_exception import SyntaxError
+
 #!#########################
 #!## INTERFACES ###########
 #!#########################

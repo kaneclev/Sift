@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List
 
+from api.language_api.script_processor import ScriptProcessor
 from language.compiler.intermediate_representation import (
     IntermediateConstructor,
     IntermediateRepresentation,
@@ -129,13 +130,33 @@ class FilterBytecode:
                 ))
 
 class Compiler:
-    def __init__(self, AST: ScriptTree, script_id: str):  # noqa: N803
-        self.id = script_id
-        self.AST = AST
+    def __init__(self, script: Any):  # noqa: N803
+        self.STATES = {
+            "AST": None,
+            "IR": None,
+            "BYTECODE": None
+        }
+        self.script = script
+        self.processor = ScriptProcessor(self.script)
+        self.id = self.processor.id
         pass
 
+    def parse_to_ast(self) -> ScriptTree:
+        return self.processor.parse()
+
+    def ast_to_ir(self) -> IntermediateRepresentation:
+        return IntermediateConstructor.ast_to_instructions(self.STATES['AST'], identifier=self.id)
+
     def compile(self) -> CompiledScript:
-        new_compilation = CompiledScript()
-        new_compilation.IR = IntermediateConstructor.to_ir(AST=self.AST, identifier=self.id)
-        return new_compilation
+        PASSES: Dict[str, Callable] = {  # noqa: N806
+            "parse": self.parse_to_ast,
+            "lower_to_ir": self.ast_to_ir
+        }
+        for pass_name, call in PASSES.items():
+            match pass_name:
+                case 'parse':
+                    self.STATES['AST'] = call()
+                case 'lower_to_ir':
+                    self.STATES['IR'] = call()
+
 
