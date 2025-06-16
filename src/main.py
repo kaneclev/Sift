@@ -1,12 +1,10 @@
 import argparse  # noqa: I001
-import json
 import logging
 import signal
 import sys
 import os
 import threading
 
-import orjson
 from prep import prep  # noqa: F401
 from api.language_api.coordinator import Coordinator
 
@@ -59,13 +57,13 @@ def start_queue_communication():
 
 def manual_compile(fname: str):
     from language.compiler.compiler import Compiler
+    from language.compiler.types import ir_to_json
     proc = Compiler(fname)
     proc.compile()
     ir = proc.STATES['IR']
     ast = proc.STATES['AST']
-    ir_b = json.dumps(ir.to_dict(), indent=2)
-    with open("debug_logs/tst_ir.json", 'w') as f:
-        f.write(ir_b)
+
+    ir_to_json("debug_logs/tst_ir.json", ir_node=ir)
     print(f'Parsed to AST: {ast}, IR: {ir}')
 
 def start_file_communication(fname: str):

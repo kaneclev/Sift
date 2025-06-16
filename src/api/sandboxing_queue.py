@@ -32,12 +32,14 @@ def publish_script(script_content: str):
     except Exception as e:
         logger.error("Failed to publish script: %s", e)
         sys.exit(1)
+
 def read_file(fname: str) -> str:
     content = None
     print(os.getcwd())
     with open(fname, 'r') as file:
         content = file.read()
     return content
+
 if __name__ == "__main__":
     # For testing, we use a static script content.
     # You could also extend this script to accept command line arguments if needed.

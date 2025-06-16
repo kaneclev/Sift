@@ -23,10 +23,8 @@ class ScriptObjectIssues:
     def append(self, issue: Issue):
         self.issues.append(issue)
 
-    def describe(self):
-        reason_list: List[str] = []
-        reason_list.extend([str(issue) for issue in self.issues])
-        return "\n".join(reason_list)
+    def get_issues(self) -> List[Issue]:
+        return self.issues
 
 @dataclass
 class ScriptContent:
@@ -65,7 +63,6 @@ class File(ScriptObject):
         self.path_obj = None
         super().__init__(to_verify=file_path)
         if not self.is_verified:
-            print(f"Could not verify script object as being valid: \n{self.issues.describe()}")
             return
         self.metadata: File.Metadata = self._get_metadata()
         self.data = self.get_data()

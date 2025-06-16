@@ -10,6 +10,8 @@ from language.parsing.utils import ParsedNode
 @dataclass
 class ActionType:
     plugin_name: str
+    def __eq__(self, value):
+        return self.plugin_name == value
     def __init__(self, name: str):
         self.plugin_name = name
     def __hash__(self):
